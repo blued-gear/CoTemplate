@@ -43,6 +43,7 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
+    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
 }
 
 group = "apps.chocolatecakecodes.cotemplate"
