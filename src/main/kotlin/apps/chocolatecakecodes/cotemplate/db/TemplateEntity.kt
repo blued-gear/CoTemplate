@@ -1,6 +1,7 @@
 package apps.chocolatecakecodes.cotemplate.db
 
-import io.quarkus.hibernate.orm.panache.PanacheEntity
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
@@ -19,7 +20,7 @@ internal class TemplateEntity : PanacheEntity() {
     var height: Int = 0
     lateinit var uniqueName: String
 
-    companion object {
+    companion object : PanacheCompanion<TemplateEntity> {
 
         private val dateFormat = SimpleDateFormat("yyyyMMdd")
 
@@ -27,7 +28,7 @@ internal class TemplateEntity : PanacheEntity() {
 
         @JvmStatic
         fun findByUniqueName(name: String): TemplateEntity? {
-            return find<TemplateEntity>("uniqueName", name).firstResult()
+            return find("uniqueName", name).firstResult()
         }
     }
 }

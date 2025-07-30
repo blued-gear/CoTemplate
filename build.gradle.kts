@@ -27,7 +27,7 @@ dependencies {
 
     implementation("io.quarkus:quarkus-rest")
     implementation("io.quarkus:quarkus-hibernate-orm")
-    implementation("io.quarkus:quarkus-hibernate-orm-panache")
+    implementation("io.quarkus:quarkus-hibernate-orm-panache-kotlin")
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-rest-kotlin-serialization")
     implementation("io.quarkus:quarkus-jdbc-postgresql")
@@ -42,6 +42,7 @@ dependencies {
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
+    testImplementation("io.rest-assured:kotlin-extensions")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")
 }
@@ -61,6 +62,7 @@ tasks.withType<Test> {
 allOpen {
     annotation("jakarta.ws.rs.Path")
     annotation("jakarta.enterprise.context.ApplicationScoped")
+    annotation("jakarta.inject.Singleton")
     annotation("jakarta.persistence.Entity")
     annotation("io.quarkus.test.junit.QuarkusTest")
 }
