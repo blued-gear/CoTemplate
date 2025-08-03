@@ -18,6 +18,11 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
     }
 
+    fun invalidName(): Exception {
+        val msg = "invalid name"
+        return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
+    }
+
     private fun buildResp(status: Int, msg: String) = Response
         .status(status)
         .type(MediaType.APPLICATION_JSON_TYPE)

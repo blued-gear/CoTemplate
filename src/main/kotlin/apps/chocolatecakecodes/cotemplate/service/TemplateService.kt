@@ -4,8 +4,11 @@ import apps.chocolatecakecodes.cotemplate.auth.Role
 import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
+import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.RollbackException
 import jakarta.transaction.Transactional
+import org.hibernate.exception.ConstraintViolationException
 import java.util.*
 
 @ApplicationScoped
@@ -15,15 +18,25 @@ internal class TemplateService(
 
     companion object {
         internal const val MAX_TEMPLATE_DIMENSION: Int = 8192
+        internal val NAME_REGEX = Regex("[a-zA-Z0-9_:]{4,128}")
     }
 
     fun createTemplate(name: String, width: Int, height: Int): TemplateCreatedDto {
+        if(width <= 0 || height <= 0 || width > MAX_TEMPLATE_DIMENSION || height > MAX_TEMPLATE_DIMENSION)
+            throw TemplateExceptions.invalidDimensions()
+
+        if(!NAME_REGEX.matches(name))
+            throw TemplateExceptions.invalidName()
+
         try {
             return createTemplate0(name, width, height)
-        } catch(e: Exception) {
-            //TODO catch unique constraint violation and transform to http-conflict
-            e.printStackTrace()
-            throw e
+        } catch(e: RollbackException) {
+            val violatedConstraint = (e.cause as? ConstraintViolationException)?.constraintName
+            if(violatedConstraint != null && violatedConstraint.contains("uc_unique_name", true)) {
+                throw TemplateExceptions.templateAlreadyExists(name)
+            } else {
+                throw e
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package apps.chocolatecakecodes.cotemplate.db
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
 import jakarta.persistence.Entity
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import java.text.SimpleDateFormat
@@ -10,7 +11,11 @@ import java.util.*
 
 @Entity
 @Table(
-    uniqueConstraints = [UniqueConstraint(columnNames = ["unique_name"])]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["uniqueName"], name = "uc_unique_name")],
+    indexes = [
+        Index(columnList = "uniqueName", unique = true),
+        Index(columnList = "creationDate", unique = false),
+    ],
 )
 internal class TemplateEntity : PanacheEntity() {
 
