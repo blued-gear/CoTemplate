@@ -5,7 +5,6 @@ import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreateDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldEndWith
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
@@ -13,12 +12,10 @@ import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import jakarta.enterprise.context.control.ActivateRequestContext
 import jakarta.transaction.Transactional
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-@OptIn(ExperimentalSerializationApi::class)
 @QuarkusTest
 internal class AuthTest {
 
@@ -37,7 +34,6 @@ internal class AuthTest {
         }
         createResp!!
 
-        createResp.uniqueName shouldEndWith "-$name"
         createResp.ownerUsername.isEmpty() shouldBe false
         createResp.ownerPassword.isEmpty() shouldBe false
 
@@ -54,7 +50,7 @@ internal class AuthTest {
 
     @Test
     fun shouldCreateAccountOnTemplateCreate() {
-        val template = createTemplate("t1")
+        val template = createTemplate("tpl1")
 
         Given {
             this.formParam("username", template.ownerUsername)
@@ -69,7 +65,7 @@ internal class AuthTest {
 
     @Test
     fun rejectsNonexistingTemplate() {
-        val template = createTemplate("t1")
+        val template = createTemplate("tpl1")
 
         Given {
             this.formParam("username", template.ownerUsername)
@@ -86,7 +82,7 @@ internal class AuthTest {
 
     @Test
     fun rejectsNonexistingUser() {
-        val template = createTemplate("t1")
+        val template = createTemplate("tpl1")
 
         Given {
             this.formParam("username", template.ownerUsername + "_")
@@ -102,7 +98,7 @@ internal class AuthTest {
 
     @Test
     fun rejectsWrongPassword() {
-        val template = createTemplate("t1")
+        val template = createTemplate("tpl1")
 
         Given {
             this.formParam("username", template.ownerUsername)

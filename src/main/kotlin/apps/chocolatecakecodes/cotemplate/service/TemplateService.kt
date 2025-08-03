@@ -13,6 +13,10 @@ internal class TemplateService(
     private val passwordService: PasswordService,
 ) {
 
+    companion object {
+        internal const val MAX_TEMPLATE_DIMENSION: Int = 8192
+    }
+
     fun createTemplate(name: String, width: Int, height: Int): TemplateCreatedDto {
         try {
             return createTemplate0(name, width, height)
