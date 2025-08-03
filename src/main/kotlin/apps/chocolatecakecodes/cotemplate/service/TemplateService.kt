@@ -4,6 +4,7 @@ import apps.chocolatecakecodes.cotemplate.auth.Role
 import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
+import apps.chocolatecakecodes.cotemplate.dto.TemplateDetailsDto
 import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.RollbackException
@@ -62,6 +63,18 @@ internal class TemplateService(
         owner.persist()
 
         return TemplateCreatedDto(entity.uniqueName, owner.name, ownerPass)
+    }
+
+    fun templateDetails(name: String): TemplateDetailsDto {
+        return TemplateEntity.findByUniqueName(name)?.let {
+            TemplateDetailsDto(
+                it.name,
+                it.creationDate.time,
+                it.width,
+                it.height,
+                0,//TODO
+            )
+        } ?: throw TemplateExceptions.templateNotFound(name)
     }
 
     private fun randomPassword(): Pair<String, String> {

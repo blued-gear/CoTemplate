@@ -1,5 +1,8 @@
 package apps.chocolatecakecodes.cotemplate.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 internal data class TemplateDetailsDto(
     val name: String,
     val createdAt: Long,

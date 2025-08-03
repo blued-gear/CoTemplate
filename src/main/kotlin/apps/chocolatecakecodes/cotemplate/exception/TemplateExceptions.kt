@@ -23,6 +23,11 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
     }
 
+    fun templateNotFound(name: String): Exception {
+        val msg = "template with name '$name' does not exist"
+        return WebApplicationException(msg, null, buildResp(HttpResponseStatus.NOT_FOUND.code(), msg))
+    }
+
     private fun buildResp(status: Int, msg: String) = Response
         .status(status)
         .type(MediaType.APPLICATION_JSON_TYPE)
