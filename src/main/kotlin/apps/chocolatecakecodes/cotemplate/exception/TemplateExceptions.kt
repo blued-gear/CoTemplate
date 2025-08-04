@@ -28,6 +28,20 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.NOT_FOUND.code(), msg))
     }
 
+    fun itemNotFound(tpl: String, id: ULong): Exception {
+        val msg = "item with id $id does not exist in template '$tpl'"
+        return WebApplicationException(msg, null, buildResp(HttpResponseStatus.NOT_FOUND.code(), msg))
+    }
+
+    fun invalidImage(message: String, cause: Throwable? = null): Exception {
+        val msg = "image is invalid: $message"
+        return WebApplicationException(msg, cause, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
+    }
+
+    fun invalidParam(message: String): Exception {
+        return WebApplicationException(message, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), message))
+    }
+
     private fun buildResp(status: Int, msg: String) = Response
         .status(status)
         .type(MediaType.APPLICATION_JSON_TYPE)

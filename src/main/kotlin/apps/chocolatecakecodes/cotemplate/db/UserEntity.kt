@@ -3,11 +3,12 @@ package apps.chocolatecakecodes.cotemplate.db
 import apps.chocolatecakecodes.cotemplate.auth.Role
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.*
 
 @Entity
+@Table(
+    indexes = [Index(columnList = "name, template", unique = true)]
+)
 internal class UserEntity : PanacheEntity() {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -17,7 +18,6 @@ internal class UserEntity : PanacheEntity() {
     lateinit var role: Role
 
     companion object : PanacheCompanion<UserEntity> {
-        @JvmStatic
         internal fun findByTemplateAndName(template: TemplateEntity, name: String): UserEntity? {
             return find("template = ?1 and name = ?2", template, name).firstResult()
         }

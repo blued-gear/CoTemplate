@@ -111,4 +111,6 @@ internal class AuthTest {
             //this.body("todo.message", StringContains("invalid password"))
         }
     }
+
+    //TODO tests for template owner, etc.
 }

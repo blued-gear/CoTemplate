@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class TemplateItemDto(
-    val id: Long,
+    val id: String,
     val description: String,
     val width: Int,
     val height: Int,
@@ -12,5 +12,5 @@ internal data class TemplateItemDto(
     val y: Int,
     val z: Int,
 ) {
-    constructor() : this(0, "", 0, 0, 0, 0, 0)
+    constructor() : this("0", "", 0, 0, 0, 0, 0)
 }

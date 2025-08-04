@@ -31,7 +31,6 @@ internal class TemplateEntity : PanacheEntity() {
 
         fun uniqueName(date: Date, name: String): String = "${dateFormat.format(date)}-$name"
 
-        @JvmStatic
         fun findByUniqueName(name: String): TemplateEntity? {
             return find("uniqueName", name).firstResult()
         }

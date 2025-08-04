@@ -40,6 +40,8 @@ dependencies {
     //implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.5.5")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
+    implementation("com.sksamuel.scrimage:scrimage-core:4.3.3")
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
@@ -72,4 +74,8 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
         javaParameters = true
     }
+}
+
+tasks.withType<Test>().configureEach {
+    this.environment("COTEMPLATE_IMG_STOARGE", "${project.projectDir}/tmp/serverImg-test")
 }

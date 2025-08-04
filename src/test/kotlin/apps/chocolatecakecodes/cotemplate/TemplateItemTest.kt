@@ -1,6 +1,7 @@
 package apps.chocolatecakecodes.cotemplate
 
 import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
+import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.*
 import io.kotest.assertions.asClue
@@ -14,10 +15,14 @@ import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import jakarta.enterprise.context.control.ActivateRequestContext
+import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import org.apache.http.HttpStatus
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
+import java.nio.file.Path
 
 @QuarkusTest
 internal class TemplateItemTest {
@@ -67,13 +72,26 @@ internal class TemplateItemTest {
         }
     }
 
+    @Inject
+    @ConfigProperty(name = "cotemplate.image-storage")
+    lateinit var imgDirPath: String
+
     @BeforeEach
     @ActivateRequestContext
     @Transactional
     fun cleanDb() {
-        ;//TODO clear item repo
+        TemplateItemEntity.deleteAll()
         UserEntity.deleteAll()
         TemplateEntity.deleteAll()
+    }
+
+    @BeforeEach
+    @ActivateRequestContext
+    @Transactional
+    fun cleanImages() {
+        Files.list(Path.of(imgDirPath)).forEach {
+            it.toFile().deleteRecursively()
+        }
     }
 
     @Test
@@ -104,7 +122,7 @@ internal class TemplateItemTest {
             it.height shouldBe 32
         }
         val item2 = uploadItem(tpl.uniqueName, "i 2", 3, 4, 1, IMG2)
-        item1.asClue {
+        item2.asClue {
             it.description shouldBe "i 2"
             it.id shouldNotBe 0
             it.x shouldBe 3
@@ -265,7 +283,10 @@ internal class TemplateItemTest {
         } When {
             this.put("/templates/${tpl.uniqueName}/items/${item.id}/image")
         } Then {
-            this.statusCode(HttpStatus.SC_NO_CONTENT)
+            this.statusCode(HttpStatus.SC_OK)
+            this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
+                resp shouldBe item.copy(width = 48, height = 32)
+            }
         }
 
         When {
