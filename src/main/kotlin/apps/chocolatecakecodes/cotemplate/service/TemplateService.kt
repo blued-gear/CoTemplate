@@ -10,12 +10,15 @@ import apps.chocolatecakecodes.cotemplate.dto.TemplateItemDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateItemsDto
 import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
 import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.MutableImage
+import com.sksamuel.scrimage.nio.PngWriter
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.RollbackException
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.hibernate.exception.ConstraintViolationException
 import org.slf4j.LoggerFactory
+import java.awt.image.BufferedImage
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -220,6 +223,28 @@ internal class TemplateService(
         return TemplateItemEntity.findAllByTemplate(tpl).map(this::itemEntityToDto).let {
             TemplateItemsDto(it)
         }
+    }
+
+    fun render(tplName: String, items: Set<ULong>): ByteArray {
+        val tpl = TemplateEntity.findByUniqueName(tplName)
+            ?: throw TemplateExceptions.templateNotFound(tplName)
+        val imgs = TemplateItemEntity.findAllByTemplateAndImageId(tpl, items.map { it.toLong() }.toSet())
+        if(items.size != imgs.size)
+            throw TemplateExceptions.itemsNotFound(tplName, items)
+
+        val canvas = MutableImage(BufferedImage(tpl.width, tpl.height, BufferedImage.TYPE_INT_ARGB))
+        imgs.sortedBy { it.z }.forEach { item ->
+            val img = try {
+                ImmutableImage.loader().fromPath(imgStoragePath(item))
+                    .toNewBufferedImage(BufferedImage.TYPE_INT_ARGB)
+            } catch(e: Exception) {
+                LOGGER.error("unable to read image for item $tplName::${item.imgId}", e)
+                throw e
+            }
+            canvas.overlayInPlace(img, item.x, item.y)
+        }
+
+        return canvas.bytes(PngWriter.MaxCompression)
     }
 
     @Transactional

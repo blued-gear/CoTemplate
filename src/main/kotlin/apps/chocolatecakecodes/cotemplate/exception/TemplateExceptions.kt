@@ -33,6 +33,11 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.NOT_FOUND.code(), msg))
     }
 
+    fun itemsNotFound(tpl: String, ids: Set<ULong>): Exception {
+        val msg = "at least one item of {${ids.joinToString(", ")}} does not exist in template '$tpl'"
+        return WebApplicationException(msg, null, buildResp(HttpResponseStatus.NOT_FOUND.code(), msg))
+    }
+
     fun invalidImage(message: String, cause: Throwable? = null): Exception {
         val msg = "image is invalid: $message"
         return WebApplicationException(msg, cause, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))

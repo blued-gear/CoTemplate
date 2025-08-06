@@ -46,5 +46,9 @@ internal class TemplateItemEntity() : PanacheEntity() {
         fun findAllByTemplate(template: TemplateEntity): List<TemplateItemEntity> {
             return find("template = ?1", template).list()
         }
+
+        fun findAllByTemplateAndImageId(template: TemplateEntity, imgIds: Set<Long>): List<TemplateItemEntity> {
+            return find("template = ?1 and imgId in ?2", template, imgIds).list()
+        }
     }
 }
