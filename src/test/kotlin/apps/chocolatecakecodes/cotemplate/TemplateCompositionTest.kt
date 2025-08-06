@@ -5,11 +5,13 @@ import apps.chocolatecakecodes.cotemplate.TemplateItemTest.Companion.IMG2
 import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
 import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
+import apps.chocolatecakecodes.cotemplate.exception.ExceptionBody
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.quarkus.test.junit.QuarkusTest
+import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import jakarta.enterprise.context.control.ActivateRequestContext
@@ -144,5 +146,21 @@ internal class TemplateCompositionTest {
         val tpl = TemplateItemTest.setupTemplate()
         val i1 = TemplateItemTest.uploadItem(tpl.uniqueName, "", -100, -100, 0, IMG1)
         checkImg(tpl.uniqueName, listOf(i1.id), EXPECTED_EMPTY)
+    }
+
+    @Test
+    fun itemNotFound() {
+        val tpl = TemplateItemTest.setupTemplate()
+        val i1 = TemplateItemTest.uploadItem(tpl.uniqueName, "", -100, -100, 0, IMG1)
+
+        When {
+            this.get("/templates/${tpl.uniqueName}/template?images=${i1.id},123")
+        } Then {
+            this.statusCode(HttpStatus.SC_NOT_FOUND)
+            this.contentType(ContentType.JSON)
+            this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
+                resp.message shouldBe "at least one item of {${i1.id}, 123} does not exist in template '${tpl.uniqueName}'"
+            }
+        }
     }
 }
