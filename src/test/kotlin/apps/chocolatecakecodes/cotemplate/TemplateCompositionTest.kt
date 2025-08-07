@@ -5,13 +5,16 @@ import apps.chocolatecakecodes.cotemplate.TemplateItemTest.Companion.IMG2
 import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
 import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
+import apps.chocolatecakecodes.cotemplate.dto.TemplateItemUpdateDto
 import apps.chocolatecakecodes.cotemplate.exception.ExceptionBody
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import io.kotest.assertions.withClue
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.http.ContentType
+import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import jakarta.enterprise.context.control.ActivateRequestContext
@@ -25,6 +28,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.random.Random
 import kotlin.random.nextInt
+import kotlin.time.measureTime
 
 @QuarkusTest
 internal class TemplateCompositionTest {
@@ -162,5 +166,47 @@ internal class TemplateCompositionTest {
                 resp.message shouldBe "at least one item of {${i1.id}, 123} does not exist in template '${tpl.uniqueName}'"
             }
         }
+    }
+
+    @Test
+    fun caching() {
+        val tpl = TemplateItemTest.setupTemplate()
+        val i1 = TemplateItemTest.uploadItem(tpl.uniqueName, "", -100, -100, 0, IMG1)
+
+        val tNew = measureTime {
+            When {
+                this.get("/templates/${tpl.uniqueName}/template?images=${i1.id}")
+            } Then {
+                this.statusCode(HttpStatus.SC_OK)
+            }
+        }
+        val tCached = measureTime {
+            When {
+                this.get("/templates/${tpl.uniqueName}/template?images=${i1.id}")
+            } Then {
+                this.statusCode(HttpStatus.SC_OK)
+            }
+        }
+
+        withClue(Pair(tNew, tCached)) {
+            println("speedup: ${tNew.minus(tCached)}")
+            tCached shouldBeLessThan tNew.div(2)
+        }
+    }
+
+    @Test
+    fun cacheInvalidationOnItemUpdate() {
+        val tpl = TemplateItemTest.setupTemplate()
+        val i1 = TemplateItemTest.uploadItem(tpl.uniqueName, "", 0, 0, 0, IMG1)
+        checkImg(tpl.uniqueName, listOf(i1.id), EXPECTED_ONE)
+
+        Given {
+            this.contentType(ContentType.JSON)
+            this.body(TemplateItemUpdateDto(x = 1000, y = -1000, z = 5))
+        } When {
+            this.put("/templates/${tpl.uniqueName}/items/${i1.id}/details")
+        }
+
+        checkImg(tpl.uniqueName, listOf(i1.id), EXPECTED_EMPTY)
     }
 }

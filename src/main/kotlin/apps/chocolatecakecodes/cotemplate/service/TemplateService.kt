@@ -12,7 +12,12 @@ import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.MutableImage
 import com.sksamuel.scrimage.nio.PngWriter
+import io.quarkus.cache.Cache
+import io.quarkus.cache.CacheName
+import io.quarkus.cache.CacheResult
+import io.quarkus.cache.CompositeCacheKey
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import jakarta.transaction.RollbackException
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.config.inject.ConfigProperty
@@ -41,6 +46,9 @@ internal class TemplateService(
         private val LOGGER = LoggerFactory.getLogger(TemplateService::class.java)
     }
 
+    @Inject
+    @CacheName("template-rendered")
+    private lateinit var renderCache: Cache
     private val imgDir: Path
 
     init {
@@ -150,6 +158,7 @@ internal class TemplateService(
         }
 
         item.delete()
+        invalidateCachedWithItem(tplName, imgId)
     }
 
     @Transactional
@@ -165,6 +174,7 @@ internal class TemplateService(
         if(z != null) item.z = z
 
         item.persist()
+        invalidateCachedWithItem(tplName, imgId)
         return itemEntityToDto(item)
     }
 
@@ -188,6 +198,7 @@ internal class TemplateService(
         }
 
         item.persist()
+        invalidateCachedWithItem(tplName, imgId)
         return itemEntityToDto(item)
     }
 
@@ -225,6 +236,7 @@ internal class TemplateService(
         }
     }
 
+    @CacheResult(cacheName = "template-rendered")
     fun render(tplName: String, items: Set<ULong>): ByteArray {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
@@ -278,5 +290,16 @@ internal class TemplateService(
             throw TemplateExceptions.invalidImage("unable to decode image", e)
         }
         return Pair(parsedImg.width, parsedImg.height)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun invalidateCachedWithItem(tpl: String, item: ULong) {
+        renderCache.invalidateIf {
+            val components = (it as CompositeCacheKey).keyElements
+            assert(components.size == 2)
+            if(components[0] != tpl) return@invalidateIf false
+            val items = components[1] as Set<ULong>
+            return@invalidateIf items.contains(item)
+        }.await().indefinitely()
     }
 }
