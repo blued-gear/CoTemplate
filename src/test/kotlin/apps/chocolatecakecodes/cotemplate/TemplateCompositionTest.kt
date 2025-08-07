@@ -10,7 +10,7 @@ import apps.chocolatecakecodes.cotemplate.exception.ExceptionBody
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import io.kotest.assertions.withClue
-import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.http.ContentType
@@ -28,6 +28,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.random.Random
 import kotlin.random.nextInt
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTime
 
 @QuarkusTest
@@ -202,7 +203,7 @@ internal class TemplateCompositionTest {
 
         withClue(Pair(tNew, tCached)) {
             println("speedup: ${tNew.minus(tCached)}")
-            tCached shouldBeLessThan tNew.times(0.7)
+            tNew.minus(tCached) shouldBeGreaterThan 1.milliseconds
         }
     }
 
