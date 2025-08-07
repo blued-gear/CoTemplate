@@ -82,7 +82,7 @@ internal class TemplateRessource (
     @DELETE
     @Path("/{name}/items/{id}")
     @ResponseStatus(RestResponse.StatusCode.NO_CONTENT)
-    fun deleteTemplateItem(@RestPath name: String, @RestPath idStr: String) {
+    fun deleteTemplateItem(@RestPath name: String, @RestPath("id") idStr: String) {
         templateService.deleteItem(name, parseItemId(idStr))
     }
 
