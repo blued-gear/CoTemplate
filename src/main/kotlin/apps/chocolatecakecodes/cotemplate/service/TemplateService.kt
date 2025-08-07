@@ -55,7 +55,7 @@ internal class TemplateService(
         if(imgDirPath.isEmpty())
             throw IllegalArgumentException("COTEMPLATE_IMG_STOARGE was unset")
         imgDir = try {
-            Files.createDirectories(Path.of(imgDirPath))
+            Files.createDirectories(Path.of(imgDirPath).toAbsolutePath().normalize())
         } catch (e: IOException) {
             throw IllegalArgumentException("COTEMPLATE_IMG_STOARGE could not be accessed / created", e)
         }

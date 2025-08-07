@@ -1,11 +1,10 @@
 package apps.chocolatecakecodes.cotemplate
 
-import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
-import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreateDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateDetailsDto
 import apps.chocolatecakecodes.cotemplate.exception.ExceptionBody
+import apps.chocolatecakecodes.cotemplate.util.CleanupHelper
 import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
@@ -14,8 +13,7 @@ import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
-import jakarta.enterprise.context.control.ActivateRequestContext
-import jakarta.transaction.Transactional
+import jakarta.inject.Inject
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,12 +22,12 @@ import java.util.*
 @QuarkusTest
 internal class TemplateCreationTest {
 
+    @Inject
+    private lateinit var cleanupHelper: CleanupHelper
+
     @BeforeEach
-    @ActivateRequestContext
-    @Transactional
     fun cleanDb() {
-        UserEntity.deleteAll()
-        TemplateEntity.deleteAll()
+        cleanupHelper.cleanDb()
     }
 
     @Test
@@ -38,7 +36,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 16, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_CREATED)
             this.extract().body().`as`(TemplateCreatedDto::class.java).let { resp ->
@@ -53,7 +51,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 16, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_CREATED)
         }
@@ -62,7 +60,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 18, 18))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_CONFLICT)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -77,7 +75,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1-", 16, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -92,7 +90,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("t1".repeat(64) + "0", 16, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -107,7 +105,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("t10", 16, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -122,7 +120,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", -16, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -137,7 +135,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 0, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -152,7 +150,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 16, -16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -167,7 +165,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 16, 0))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -182,7 +180,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 8193, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -197,7 +195,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 16, 8193))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_BAD_REQUEST)
             this.extract().body().`as`(ExceptionBody::class.java).let { resp ->
@@ -212,7 +210,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 8192, 8192))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_CREATED)
         }
@@ -225,7 +223,7 @@ internal class TemplateCreationTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateCreateDto("tpl1", 18, 16))
         } When {
-            this.post("/templates")
+            this.post("/api/templates")
         } Then {
             this.statusCode(HttpStatus.SC_CREATED)
             this.extract().body().`as`(TemplateCreatedDto::class.java).let { resp ->
@@ -235,7 +233,7 @@ internal class TemplateCreationTest {
         name!!
 
         When {
-            this.get("/templates/$name")
+            this.get("/api/templates/$name")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateDetailsDto::class.java).let { resp ->

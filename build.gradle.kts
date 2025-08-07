@@ -77,5 +77,5 @@ kotlin {
 }
 
 tasks.withType<Test>().configureEach {
-    this.environment("COTEMPLATE_IMG_STOARGE", "${project.projectDir}/tmp/serverImg-test")
+    this.environment("COTEMPLATE_IMG_STORAGE", "${project.projectDir}/tmp/serverImg-test")
 }

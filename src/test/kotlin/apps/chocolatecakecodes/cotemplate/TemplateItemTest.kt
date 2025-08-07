@@ -1,9 +1,7 @@
 package apps.chocolatecakecodes.cotemplate
 
-import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
-import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
-import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.*
+import apps.chocolatecakecodes.cotemplate.util.CleanupHelper
 import io.kotest.assertions.asClue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -14,15 +12,10 @@ import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
-import jakarta.enterprise.context.control.ActivateRequestContext
 import jakarta.inject.Inject
-import jakarta.transaction.Transactional
 import org.apache.http.HttpStatus
-import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.nio.file.Files
-import java.nio.file.Path
 
 @QuarkusTest
 internal class TemplateItemTest {
@@ -38,7 +31,7 @@ internal class TemplateItemTest {
                 this.contentType(ContentType.JSON)
                 this.body(TemplateCreateDto("tpl1", 256, 128))
             } When {
-                this.post("/templates")
+                this.post("/api/templates")
             } Then {
                 this.statusCode(HttpStatus.SC_CREATED)
                 this.extract().let { resp ->
@@ -63,7 +56,7 @@ internal class TemplateItemTest {
                     this.multiPart("image", "image.png", it)
                 }
             } When {
-                this.post("/templates/$tpl/items")
+                this.post("/api/templates/$tpl/items")
             } Then {
                 this.statusCode(HttpStatus.SC_CREATED)
                 ret = this.extract().body().`as`(TemplateItemDto::class.java)
@@ -73,32 +66,23 @@ internal class TemplateItemTest {
     }
 
     @Inject
-    @ConfigProperty(name = "cotemplate.image-storage")
-    lateinit var imgDirPath: String
+    private lateinit var cleanupHelper: CleanupHelper
 
     @BeforeEach
-    @ActivateRequestContext
-    @Transactional
     fun cleanDb() {
-        TemplateItemEntity.deleteAll()
-        UserEntity.deleteAll()
-        TemplateEntity.deleteAll()
+        cleanupHelper.cleanDb()
     }
 
     @BeforeEach
-    @ActivateRequestContext
-    @Transactional
     fun cleanImages() {
-        Files.list(Path.of(imgDirPath)).forEach {
-            it.toFile().deleteRecursively()
-        }
+        cleanupHelper.cleanImages()
     }
 
     @Test
     fun emptyTemplate() {
         val tpl = setupTemplate()
         When {
-            this.get("/templates/${tpl.uniqueName}/items")
+            this.get("/api/templates/${tpl.uniqueName}/items")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemsDto::class.java).let { resp ->
@@ -133,7 +117,7 @@ internal class TemplateItemTest {
         }
 
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item1.id}/details")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item1.id}/details")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -141,7 +125,7 @@ internal class TemplateItemTest {
             }
         }
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item2.id}/details")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item2.id}/details")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -150,7 +134,7 @@ internal class TemplateItemTest {
         }
 
         When {
-            this.get("/templates/${tpl.uniqueName}/items")
+            this.get("/api/templates/${tpl.uniqueName}/items")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemsDto::class.java).let { resp ->
@@ -166,7 +150,7 @@ internal class TemplateItemTest {
         val item2 = uploadItem(tpl.uniqueName, "i 2", 0, 0, 0, IMG2)
 
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item2.id}/image")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item2.id}/image")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.contentType("image/png")
@@ -186,13 +170,13 @@ internal class TemplateItemTest {
         val item2 = uploadItem(tpl.uniqueName, "i 2", 0, 0, 0, IMG2)
 
         When {
-            this.delete("/templates/${tpl.uniqueName}/items/${item1.id}")
+            this.delete("/api/templates/${tpl.uniqueName}/items/${item1.id}")
         } Then {
             this.statusCode(HttpStatus.SC_NO_CONTENT)
         }
 
         When {
-            this.get("/templates/${tpl.uniqueName}/items")
+            this.get("/api/templates/${tpl.uniqueName}/items")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemsDto::class.java).let { resp ->
@@ -211,10 +195,10 @@ internal class TemplateItemTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateItemUpdateDto())
         } When {
-            this.put("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.put("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         }
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -233,10 +217,10 @@ internal class TemplateItemTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateItemUpdateDto(description = "desc"))
         } When {
-            this.put("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.put("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         }
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -255,10 +239,10 @@ internal class TemplateItemTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateItemUpdateDto(x = 1000, y = -1000, z = 5))
         } When {
-            this.put("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.put("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         }
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -281,7 +265,7 @@ internal class TemplateItemTest {
                 this.multiPart("image", "image.png", it)
             }
         } When {
-            this.put("/templates/${tpl.uniqueName}/items/${item.id}/image")
+            this.put("/api/templates/${tpl.uniqueName}/items/${item.id}/image")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -290,7 +274,7 @@ internal class TemplateItemTest {
         }
 
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item.id}/details")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemDto::class.java).let { resp ->
@@ -298,7 +282,7 @@ internal class TemplateItemTest {
             }
         }
         When {
-            this.get("/templates/${tpl.uniqueName}/items/${item.id}/image")
+            this.get("/api/templates/${tpl.uniqueName}/items/${item.id}/image")
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.contentType("image/png")

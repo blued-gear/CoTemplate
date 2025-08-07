@@ -2,11 +2,9 @@ package apps.chocolatecakecodes.cotemplate
 
 import apps.chocolatecakecodes.cotemplate.TemplateItemTest.Companion.IMG1
 import apps.chocolatecakecodes.cotemplate.TemplateItemTest.Companion.IMG2
-import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
-import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
-import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.TemplateItemUpdateDto
 import apps.chocolatecakecodes.cotemplate.exception.ExceptionBody
+import apps.chocolatecakecodes.cotemplate.util.CleanupHelper
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import io.kotest.assertions.withClue
@@ -17,9 +15,7 @@ import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
-import jakarta.enterprise.context.control.ActivateRequestContext
 import jakarta.inject.Inject
-import jakarta.transaction.Transactional
 import org.apache.http.HttpStatus
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.junit.jupiter.api.BeforeEach
@@ -47,8 +43,11 @@ internal class TemplateCompositionTest {
     @ConfigProperty(name = "cotemplate.image-storage")
     lateinit var imgDirPath: String
 
+    @Inject
+    private lateinit var cleanupHelper: CleanupHelper
+
     private fun checkImg(tpl: String, imgs: List<String>, expectedClasspath: String) {
-        checkImg("/templates/$tpl/template?images=${imgs.joinToString(",")}", expectedClasspath)
+        checkImg("/api/templates/$tpl/template?images=${imgs.joinToString(",")}", expectedClasspath)
     }
 
     private fun checkImg(urlPath: String, expectedClasspath: String) {
@@ -95,21 +94,13 @@ internal class TemplateCompositionTest {
     }
 
     @BeforeEach
-    @ActivateRequestContext
-    @Transactional
     fun cleanDb() {
-        TemplateItemEntity.deleteAll()
-        UserEntity.deleteAll()
-        TemplateEntity.deleteAll()
+        cleanupHelper.cleanDb()
     }
 
     @BeforeEach
-    @ActivateRequestContext
-    @Transactional
     fun cleanImages() {
-        Files.list(Path.of(imgDirPath)).forEach {
-            it.toFile().deleteRecursively()
-        }
+        cleanupHelper.cleanImages()
     }
 
     @Test
@@ -162,7 +153,7 @@ internal class TemplateCompositionTest {
         val tpl = TemplateItemTest.setupTemplate()
         TemplateItemTest.uploadItem(tpl.uniqueName, "", 0, 0, 0, IMG1)
         TemplateItemTest.uploadItem(tpl.uniqueName, "", 256 - 32, 128 - 32, 0, IMG2)
-        checkImg("/templates/${tpl.uniqueName}/template?images=all", EXPECTED_BOUNDS)
+        checkImg("/api/templates/${tpl.uniqueName}/template?images=all", EXPECTED_BOUNDS)
     }
 
     @Test
@@ -171,7 +162,7 @@ internal class TemplateCompositionTest {
         val i1 = TemplateItemTest.uploadItem(tpl.uniqueName, "", -100, -100, 0, IMG1)
 
         When {
-            this.get("/templates/${tpl.uniqueName}/template?images=${i1.id},123")
+            this.get("/api/templates/${tpl.uniqueName}/template?images=${i1.id},123")
         } Then {
             this.statusCode(HttpStatus.SC_NOT_FOUND)
             this.contentType(ContentType.JSON)
@@ -188,14 +179,14 @@ internal class TemplateCompositionTest {
 
         val tNew = measureTime {
             When {
-                this.get("/templates/${tpl.uniqueName}/template?images=${i1.id}")
+                this.get("/api/templates/${tpl.uniqueName}/template?images=${i1.id}")
             } Then {
                 this.statusCode(HttpStatus.SC_OK)
             }
         }
         val tCached = measureTime {
             When {
-                this.get("/templates/${tpl.uniqueName}/template?images=${i1.id}")
+                this.get("/api/templates/${tpl.uniqueName}/template?images=${i1.id}")
             } Then {
                 this.statusCode(HttpStatus.SC_OK)
             }
@@ -217,7 +208,7 @@ internal class TemplateCompositionTest {
             this.contentType(ContentType.JSON)
             this.body(TemplateItemUpdateDto(x = 1000, y = -1000, z = 5))
         } When {
-            this.put("/templates/${tpl.uniqueName}/items/${i1.id}/details")
+            this.put("/api/templates/${tpl.uniqueName}/items/${i1.id}/details")
         }
 
         checkImg(tpl.uniqueName, listOf(i1.id), EXPECTED_EMPTY)

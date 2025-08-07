@@ -9,7 +9,7 @@ import org.jboss.resteasy.reactive.*
 import org.jboss.resteasy.reactive.multipart.FileUpload
 import java.nio.file.Files
 
-@Path("templates")
+@Path("api/templates")
 internal class TemplateRessource (
     private val templateService: TemplateService,
 ) {
