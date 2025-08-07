@@ -145,6 +145,12 @@ internal class TemplateService(
     }
 
     @Transactional
+    protected fun addItemEntity(tpl: TemplateEntity, desc: String, x: Int, y: Int, z: Int, w: Int, h: Int): TemplateItemEntity {
+        return TemplateItemEntity(tpl, desc, x, y, z, w, h)
+            .also { it.persist() }
+    }
+
+    @Transactional
     fun deleteItem(tplName: String, imgId: ULong) {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
@@ -272,9 +278,30 @@ internal class TemplateService(
     }
 
     @Transactional
-    protected fun addItemEntity(tpl: TemplateEntity, desc: String, x: Int, y: Int, z: Int, w: Int, h: Int): TemplateItemEntity {
-        return TemplateItemEntity(tpl, desc, x, y, z, w, h)
-            .also { it.persist() }
+    fun deleteTemplate(tplName: String) {
+        val tpl = TemplateEntity.findByUniqueName(tplName)
+            ?: throw TemplateExceptions.templateNotFound(tplName)
+
+        TemplateItemEntity.findAllByTemplate(tpl).forEach { item ->
+            try {
+                Files.delete(imgStoragePath(item))
+            } catch(e: Exception) {
+                LOGGER.error("unable to delete image of item $tplName::$item", e)
+            }
+            item.delete()
+        }
+
+        UserEntity.findAllByTemplate(tpl).forEach { user ->
+            user.delete()
+        }
+
+        tpl.delete()
+
+        try {
+            Files.delete(imgDir)
+        } catch(e: Exception) {
+            LOGGER.error("unable to delete image dir of template $tplName", e)
+        }
     }
 
     private fun randomPassword(): Pair<String, String> {

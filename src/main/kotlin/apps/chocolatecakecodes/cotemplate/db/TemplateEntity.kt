@@ -7,6 +7,7 @@ import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 
 @Entity
@@ -33,6 +34,10 @@ internal class TemplateEntity : PanacheEntity() {
 
         fun findByUniqueName(name: String): TemplateEntity? {
             return find("uniqueName", name).firstResult()
+        }
+
+        fun findAllOverAge(age: Instant): List<TemplateEntity> {
+            return find("creationDate < ?", age).list()
         }
     }
 }

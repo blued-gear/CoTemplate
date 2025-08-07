@@ -18,8 +18,13 @@ internal class UserEntity : PanacheEntity() {
     lateinit var role: Role
 
     companion object : PanacheCompanion<UserEntity> {
+
         internal fun findByTemplateAndName(template: TemplateEntity, name: String): UserEntity? {
             return find("template = ?1 and name = ?2", template, name).firstResult()
+        }
+
+        internal fun findAllByTemplate(template: TemplateEntity): List<UserEntity> {
+            return find("template = ?1", template).list()
         }
     }
 }
