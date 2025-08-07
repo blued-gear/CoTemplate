@@ -236,7 +236,6 @@ internal class TemplateService(
         }
     }
 
-    @CacheResult(cacheName = "template-rendered")
     fun render(tplName: String, items: Set<ULong>): ByteArray {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
@@ -244,13 +243,26 @@ internal class TemplateService(
         if(items.size != imgs.size)
             throw TemplateExceptions.itemsNotFound(tplName, items)
 
+        return render(tpl, imgs)
+    }
+
+    fun renderAll(tplName: String): ByteArray {
+        val tpl = TemplateEntity.findByUniqueName(tplName)
+            ?: throw TemplateExceptions.templateNotFound(tplName)
+        val imgs = TemplateItemEntity.findAllByTemplate(tpl)
+
+        return render(tpl, imgs)
+    }
+
+    @CacheResult(cacheName = "template-rendered")
+    protected fun render(tpl: TemplateEntity, imgs: List<TemplateItemEntity>): ByteArray {
         val canvas = MutableImage(BufferedImage(tpl.width, tpl.height, BufferedImage.TYPE_INT_ARGB))
         imgs.sortedBy { it.z }.forEach { item ->
             val img = try {
                 ImmutableImage.loader().fromPath(imgStoragePath(item))
                     .toNewBufferedImage(BufferedImage.TYPE_INT_ARGB)
             } catch(e: Exception) {
-                LOGGER.error("unable to read image for item $tplName::${item.imgId}", e)
+                LOGGER.error("unable to read image for item ${tpl.uniqueName}::${item.imgId}", e)
                 throw e
             }
             canvas.overlayInPlace(img, item.x, item.y)

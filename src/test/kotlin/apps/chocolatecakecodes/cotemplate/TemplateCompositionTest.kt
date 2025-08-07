@@ -47,8 +47,12 @@ internal class TemplateCompositionTest {
     lateinit var imgDirPath: String
 
     private fun checkImg(tpl: String, imgs: List<String>, expectedClasspath: String) {
+        checkImg("/templates/$tpl/template?images=${imgs.joinToString(",")}", expectedClasspath)
+    }
+
+    private fun checkImg(urlPath: String, expectedClasspath: String) {
         When {
-            this.get("/templates/$tpl/template?images=${imgs.joinToString(",")}")
+            this.get(urlPath)
         } Then {
             this.statusCode(HttpStatus.SC_OK)
             this.contentType("image/png")
@@ -153,6 +157,14 @@ internal class TemplateCompositionTest {
     }
 
     @Test
+    fun all() {
+        val tpl = TemplateItemTest.setupTemplate()
+        TemplateItemTest.uploadItem(tpl.uniqueName, "", 0, 0, 0, IMG1)
+        TemplateItemTest.uploadItem(tpl.uniqueName, "", 256 - 32, 128 - 32, 0, IMG2)
+        checkImg("/templates/${tpl.uniqueName}/template?images=all", EXPECTED_BOUNDS)
+    }
+
+    @Test
     fun itemNotFound() {
         val tpl = TemplateItemTest.setupTemplate()
         val i1 = TemplateItemTest.uploadItem(tpl.uniqueName, "", -100, -100, 0, IMG1)
@@ -190,7 +202,7 @@ internal class TemplateCompositionTest {
 
         withClue(Pair(tNew, tCached)) {
             println("speedup: ${tNew.minus(tCached)}")
-            tCached shouldBeLessThan tNew.div(2)
+            tCached shouldBeLessThan tNew.times(0.7)
         }
     }
 

@@ -90,8 +90,12 @@ internal class TemplateRessource (
     @Path("/{name}/template")
     @Produces("image/png")
     fun renderTemplate(@RestPath name: String, @RestQuery images: String?): ByteArray {
-        val itemIds = images?.split(',')?.map(this::parseItemId)?.toSet() ?: emptySet()
-        return templateService.render(name, itemIds)
+        if(images == "all") {
+            return templateService.renderAll(name)
+        } else {
+            val itemIds = images?.split(',')?.map(this::parseItemId)?.toSet() ?: emptySet()
+            return templateService.render(name, itemIds)
+        }
     }
 
     private fun parseItemId(idStr: String): ULong {
