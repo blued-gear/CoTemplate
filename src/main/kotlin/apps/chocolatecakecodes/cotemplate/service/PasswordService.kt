@@ -31,4 +31,9 @@ internal class PasswordService {
         return BcryptUtil.matches(password, hash)
     }
 
+    fun randomPassword(): Pair<String, String> {
+        val pass = generateRandomPassword()
+        val passEnc = hashPassword(pass)
+        return Pair(pass, passEnc)
+    }
 }

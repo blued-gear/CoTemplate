@@ -8,21 +8,15 @@ import io.quarkus.security.identity.AuthenticationRequestContext
 import io.quarkus.security.identity.IdentityProvider
 import io.quarkus.security.identity.SecurityIdentity
 import io.quarkus.security.identity.request.UsernamePasswordAuthenticationRequest
-import io.quarkus.security.runtime.QuarkusPrincipal
-import io.quarkus.security.runtime.QuarkusSecurityIdentity
 import io.smallrye.mutiny.Uni
 import io.vertx.ext.web.RoutingContext
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.context.control.ActivateRequestContext
 
 @ApplicationScoped
-internal class AuthProvider(
+internal class AuthLoginProvider(
     private val passwordService: PasswordService,
 ) : IdentityProvider<UsernamePasswordAuthenticationRequest> {
-
-    companion object {
-        const val ATTRIBUTE_TEMPLATE = "cotemplate.UserOfTemplate"
-    }
 
     override fun getRequestType(): Class<UsernamePasswordAuthenticationRequest> {
         return UsernamePasswordAuthenticationRequest::class.java
@@ -35,13 +29,12 @@ internal class AuthProvider(
 
             val user = retrieveUser(req, templateName)
 
-            return@runBlocking QuarkusSecurityIdentity.builder().apply {
-                this.setPrincipal(QuarkusPrincipal(req.username))
-                this.addRole(user.role.name)
-                this.addAttribute(ATTRIBUTE_TEMPLATE, templateName)
-                //this.addCredential(req.password)
-                this.setAnonymous(false)
-            }.build()
+            return@runBlocking CotemplateSecurityIdentity(
+                user.id!!,
+                user.name,
+                user.role,
+                templateName,
+            )
         }
     }
 

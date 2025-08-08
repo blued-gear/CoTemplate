@@ -1,11 +1,8 @@
 package apps.chocolatecakecodes.cotemplate
 
-import apps.chocolatecakecodes.cotemplate.dto.TemplateCreateDto
-import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
 import apps.chocolatecakecodes.cotemplate.util.CleanupHelper
-import io.kotest.matchers.shouldBe
+import apps.chocolatecakecodes.cotemplate.util.createTemplate
 import io.quarkus.test.junit.QuarkusTest
-import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
@@ -19,27 +16,6 @@ internal class AuthTest {
 
     @Inject
     private lateinit var cleanupHelper: CleanupHelper
-
-    private fun createTemplate(name: String): TemplateCreatedDto {
-        var createResp: TemplateCreatedDto? = null
-        Given {
-            this.contentType(ContentType.JSON)
-            this.body(TemplateCreateDto(name, 16, 16))
-        } When {
-            this.post("/api/templates")
-        } Then {
-            this.statusCode(HttpStatus.SC_CREATED)
-            this.extract().let { resp ->
-                createResp = resp.body().`as`(TemplateCreatedDto::class.java)
-            }
-        }
-        createResp!!
-
-        createResp.ownerUsername.isEmpty() shouldBe false
-        createResp.ownerPassword.isEmpty() shouldBe false
-
-        return createResp
-    }
 
     @BeforeEach
     fun cleanDb() {
@@ -59,7 +35,7 @@ internal class AuthTest {
         } Then {
             this.statusCode(HttpStatus.SC_OK)
         }
-}
+    }
 
     @Test
     fun rejectsNonexistingTemplate() {

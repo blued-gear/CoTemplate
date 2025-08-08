@@ -1,13 +1,12 @@
 package apps.chocolatecakecodes.cotemplate.db
 
-import apps.chocolatecakecodes.cotemplate.auth.Role
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
 import jakarta.persistence.*
 
 @Entity
 @Table(
-    indexes = [Index(columnList = "name, template", unique = true)]
+    indexes = [Index(columnList = "name, template_id", unique = true, name = "uc_user_unique_name")]
 )
 internal class UserEntity : PanacheEntity() {
 
@@ -15,7 +14,7 @@ internal class UserEntity : PanacheEntity() {
     lateinit var template: TemplateEntity
     lateinit var name: String
     lateinit var pass: String
-    lateinit var role: Role
+    lateinit var role: String
 
     companion object : PanacheCompanion<UserEntity> {
 

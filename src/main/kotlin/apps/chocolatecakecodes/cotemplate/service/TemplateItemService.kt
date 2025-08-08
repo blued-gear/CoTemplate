@@ -1,11 +1,9 @@
 package apps.chocolatecakecodes.cotemplate.service
 
-import apps.chocolatecakecodes.cotemplate.auth.Role
+import apps.chocolatecakecodes.cotemplate.auth.CotemplateSecurityIdentity
 import apps.chocolatecakecodes.cotemplate.db.TemplateEntity
 import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
-import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
-import apps.chocolatecakecodes.cotemplate.dto.TemplateDetailsDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateItemDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateItemsDto
 import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
@@ -18,32 +16,25 @@ import io.quarkus.cache.CacheResult
 import io.quarkus.cache.CompositeCacheKey
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import jakarta.transaction.RollbackException
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.config.inject.ConfigProperty
-import org.hibernate.exception.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.*
 
 @ApplicationScoped
-internal class TemplateService(
-    private val passwordService: PasswordService,
+internal class TemplateItemService(
+    private val mngService: TemplateManagementService,
     @ConfigProperty(name = "cotemplate.image-storage")
     imgDirPath: String,
 ) {
 
-    //TODO all operations must check if the user has permissions
-
     companion object {
-        internal const val MAX_TEMPLATE_DIMENSION: Int = 8192
-        internal val NAME_REGEX = Regex("[a-zA-Z0-9_:]{4,128}")
 
-        private val LOGGER = LoggerFactory.getLogger(TemplateService::class.java)
+        private val LOGGER = LoggerFactory.getLogger(TemplateItemService::class.java)
     }
 
     @Inject
@@ -62,87 +53,15 @@ internal class TemplateService(
         LOGGER.info("using imgDir: $imgDir")
     }
 
-    fun createTemplate(name: String, width: Int, height: Int): TemplateCreatedDto {
-        if(width <= 0 || height <= 0 || width > MAX_TEMPLATE_DIMENSION || height > MAX_TEMPLATE_DIMENSION)
-            throw TemplateExceptions.invalidDimensions()
-
-        if(!NAME_REGEX.matches(name))
-            throw TemplateExceptions.invalidName()
-
-        val tpl = try {
-             createTemplate0(name, width, height)
-        } catch(e: RollbackException) {
-            val violatedConstraint = (e.cause as? ConstraintViolationException)?.constraintName
-            if(violatedConstraint != null && violatedConstraint.contains("uc_unique_name", true)) {
-                throw TemplateExceptions.templateAlreadyExists(name)
-            } else {
-                throw e
-            }
-        }
-
-        try {
-            Files.createDirectories(imgDir.resolve(tpl.uniqueName))
-        } catch (e: Exception) {
-            LOGGER.error("unable to create img-dir for template ${tpl.uniqueName}", e)
-            throw e
-        }
-
-        return tpl
-    }
-
-    @Transactional
-    protected fun createTemplate0(name: String, width: Int, height: Int): TemplateCreatedDto {
-        val entity = TemplateEntity().apply {
-            this.creationDate = Date()
-            this.name = name
-            this.uniqueName = TemplateEntity.uniqueName(Date(), name)
-            this.width = width
-            this.height = height
-        }
-
-        val (ownerPass, ownerPassEnc) = randomPassword()
-        val owner = UserEntity().apply {
-            this.template = entity
-            this.role = Role.TEMPLATE_OWNER
-            this.name = "owner"
-            this.pass = ownerPassEnc
-        }
-
-        entity.persist()
-        owner.persist()
-
-        return TemplateCreatedDto(entity.uniqueName, owner.name, ownerPass)
-    }
-
-    fun templateDetails(name: String): TemplateDetailsDto {
-        return TemplateEntity.findByUniqueName(name)?.let {
-            templateEntityToDto(it)
-        } ?: throw TemplateExceptions.templateNotFound(name)
-    }
-
-    @Transactional
-    fun updateTemplateSize(tplName: String, width: Int, height: Int): TemplateDetailsDto {
-        if(width <= 0 || height <= 0 || width > MAX_TEMPLATE_DIMENSION || height > MAX_TEMPLATE_DIMENSION)
-            throw TemplateExceptions.invalidDimensions()
+    fun addItem(ident: CotemplateSecurityIdentity, tplName: String, desc: String, x: Int, y: Int, z: Int, img: ByteArray): TemplateItemDto {
+        mngService.checkTeamAccess("modifying items", ident, tplName)
 
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
-
-        tpl.width = width
-        tpl.height = height
-
-        tpl.persist()
-        invalidateCachedWithTemplate(tplName)
-
-        return templateEntityToDto(tpl)
-    }
-
-    fun addItem(tplName: String, desc: String, x: Int, y: Int, z: Int, img: ByteArray): TemplateItemDto {
-        val tpl = TemplateEntity.findByUniqueName(tplName)
-            ?: throw TemplateExceptions.templateNotFound(tplName)
+        val user = UserEntity.findById(ident.userId)!!
 
         val (w, h) = getImageDimensions(img)
-        val entity = addItemEntity(tpl, desc, x, y, z, w, h)
+        val entity = addItemEntity(tpl, user, desc, x, y, z, w, h)
 
         try {
             Files.write(imgStoragePath(entity), img, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
@@ -156,17 +75,19 @@ internal class TemplateService(
     }
 
     @Transactional
-    protected fun addItemEntity(tpl: TemplateEntity, desc: String, x: Int, y: Int, z: Int, w: Int, h: Int): TemplateItemEntity {
-        return TemplateItemEntity(tpl, desc, x, y, z, w, h)
+    protected fun addItemEntity(tpl: TemplateEntity, owner: UserEntity, desc: String, x: Int, y: Int, z: Int, w: Int, h: Int): TemplateItemEntity {
+        return TemplateItemEntity(tpl, owner, desc, x, y, z, w, h)
             .also { it.persist() }
     }
 
     @Transactional
-    fun deleteItem(tplName: String, imgId: ULong) {
+    fun deleteItem(ident: CotemplateSecurityIdentity, tplName: String, imgId: ULong) {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
         val item = TemplateItemEntity.findByTemplateAndImgId(tpl, imgId.toLong())
             ?: throw TemplateExceptions.itemNotFound(tplName, imgId)
+
+        mngService.checkItemAccess("modifying items", ident, tplName, item.owner)
 
         try {
             Files.delete(imgStoragePath(item))
@@ -179,11 +100,13 @@ internal class TemplateService(
     }
 
     @Transactional
-    fun updateItemDetails(tplName: String, imgId: ULong, desc: String?, x: Int?, y: Int?, z: Int?): TemplateItemDto {
+    fun updateItemDetails(ident: CotemplateSecurityIdentity, tplName: String, imgId: ULong, desc: String?, x: Int?, y: Int?, z: Int?): TemplateItemDto {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
         val item = TemplateItemEntity.findByTemplateAndImgId(tpl, imgId.toLong())
             ?: throw TemplateExceptions.itemNotFound(tplName, imgId)
+
+        mngService.checkItemAccess("modifying items", ident, tplName, item.owner)
 
         if(desc != null) item.description = desc
         if(x != null) item.x = x
@@ -196,11 +119,13 @@ internal class TemplateService(
     }
 
     @Transactional
-    fun updateItemImage(tplName: String, imgId: ULong, img: ByteArray): TemplateItemDto {
+    fun updateItemImage(ident: CotemplateSecurityIdentity, tplName: String, imgId: ULong, img: ByteArray): TemplateItemDto {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
         val item = TemplateItemEntity.findByTemplateAndImgId(tpl, imgId.toLong())
             ?: throw TemplateExceptions.itemNotFound(tplName, imgId)
+
+        mngService.checkItemAccess("modifying items", ident, tplName, item.owner)
 
         getImageDimensions(img).let { (w, h) ->
             item.width = w
@@ -233,8 +158,6 @@ internal class TemplateService(
             ?: throw TemplateExceptions.templateNotFound(tplName)
         val item = TemplateItemEntity.findByTemplateAndImgId(tpl, imgId.toLong())
             ?: throw TemplateExceptions.itemNotFound(tplName, imgId)
-
-        //TODO access check
 
         return try {
             Files.readAllBytes(imgStoragePath(item))
@@ -288,55 +211,52 @@ internal class TemplateService(
         return canvas.bytes(PngWriter.MaxCompression)
     }
 
-    @Transactional
-    fun deleteTemplate(tplName: String) {
-        val tpl = TemplateEntity.findByUniqueName(tplName)
-            ?: throw TemplateExceptions.templateNotFound(tplName)
+    fun mkImageDir(tplName: String) {
+        Files.createDirectories(imgDir.resolve(tplName))
+    }
 
+    fun rmImageDir(tpl: TemplateEntity) {
         TemplateItemEntity.findAllByTemplate(tpl).forEach { item ->
             try {
                 Files.delete(imgStoragePath(item))
             } catch(e: Exception) {
-                LOGGER.error("unable to delete image of item $tplName::$item", e)
+                LOGGER.error("unable to delete image of item ${tpl.uniqueName}::$item", e)
             }
             item.delete()
         }
 
-        UserEntity.findAllByTemplate(tpl).forEach { user ->
-            user.delete()
-        }
-
-        tpl.delete()
-
         try {
-            Files.delete(imgDir)
+            Files.delete(imgDir.resolve(tpl.uniqueName))
         } catch(e: Exception) {
-            LOGGER.error("unable to delete image dir of template $tplName", e)
+            LOGGER.error("unable to delete image dir of template ${tpl.uniqueName}", e)
         }
     }
 
-    private fun randomPassword(): Pair<String, String> {
-        val pass = passwordService.generateRandomPassword()
-        val passEnc = passwordService.hashPassword(pass)
-        return Pair(pass, passEnc)
+    @Suppress("UNCHECKED_CAST")
+    fun invalidateCachedWithItem(tpl: String, item: ULong) {
+        renderCache.invalidateIf {
+            val components = (it as CompositeCacheKey).keyElements
+            assert(components.size == 2)
+            if(components[0] != tpl) return@invalidateIf false
+            val items = components[1] as Set<ULong>
+            return@invalidateIf items.contains(item)
+        }.await().indefinitely()
+    }
+
+    fun invalidateCachedWithTemplate(tpl: String) {
+        renderCache.invalidateIf {
+            val components = (it as CompositeCacheKey).keyElements
+            assert(components.size == 2)
+            return@invalidateIf components[0] == tpl
+        }.await().indefinitely()
     }
 
     private fun imgStoragePath(item: TemplateItemEntity): Path = imgDir.resolve("${item.template.uniqueName}/${item.imgId.toULong()}")
 
-    private fun templateEntityToDto(tpl: TemplateEntity): TemplateDetailsDto {
-        val itemCount = TemplateItemEntity.countByTemplate(tpl)
-        return TemplateDetailsDto(
-            tpl.name,
-            tpl.creationDate.time,
-            tpl.width,
-            tpl.height,
-            itemCount,
-        )
-    }
-
     private fun itemEntityToDto(entity: TemplateItemEntity) = TemplateItemDto(
         entity.imgId.toULong().toString(),
         entity.description,
+        entity.owner.name,
         entity.width,
         entity.height,
         entity.x,
@@ -351,25 +271,5 @@ internal class TemplateService(
             throw TemplateExceptions.invalidImage("unable to decode image", e)
         }
         return Pair(parsedImg.width, parsedImg.height)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun invalidateCachedWithItem(tpl: String, item: ULong) {
-        renderCache.invalidateIf {
-            val components = (it as CompositeCacheKey).keyElements
-            assert(components.size == 2)
-            if(components[0] != tpl) return@invalidateIf false
-            val items = components[1] as Set<ULong>
-            return@invalidateIf items.contains(item)
-        }.await().indefinitely()
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun invalidateCachedWithTemplate(tpl: String) {
-        renderCache.invalidateIf {
-            val components = (it as CompositeCacheKey).keyElements
-            assert(components.size == 2)
-            return@invalidateIf components[0] == tpl
-        }.await().indefinitely()
     }
 }

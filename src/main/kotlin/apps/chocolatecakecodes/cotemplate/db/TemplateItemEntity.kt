@@ -7,13 +7,15 @@ import java.security.SecureRandom
 
 @Entity
 @Table(
-    indexes = [Index(columnList = "imgId, template", unique = true)]
+    indexes = [Index(columnList = "img_id, template_id", unique = true, name = "uc_item_tpl_img")]
 )
 internal class TemplateItemEntity() : PanacheEntity() {
 
     var imgId: Long = 0
     @ManyToOne(fetch = FetchType.LAZY)
     lateinit var template: TemplateEntity
+    @ManyToOne
+    lateinit var owner: UserEntity
     lateinit var description: String
     var x: Int = 0
     var y: Int = 0
@@ -21,8 +23,9 @@ internal class TemplateItemEntity() : PanacheEntity() {
     var width: Int = 0
     var height: Int = 0
 
-    constructor(template: TemplateEntity, description: String, x: Int, y: Int, z: Int, w: Int, h: Int) : this() {
+    constructor(template: TemplateEntity, owner: UserEntity, description: String, x: Int, y: Int, z: Int, w: Int, h: Int) : this() {
         this.template = template
+        this.owner = owner
         this.description = description
         this.x = x
         this.y = y

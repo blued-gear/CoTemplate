@@ -10,7 +10,7 @@ import java.time.Instant
 
 @ApplicationScoped
 internal class TemplateEvictionService(
-    private val templateService: TemplateService,
+    private val templateService: TemplateManagementService,
     @param:ConfigProperty(name = "cotemplate.template-max-age")
     private val templateMaxAge: Duration,
 ) {
