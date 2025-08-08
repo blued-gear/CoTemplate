@@ -116,13 +116,7 @@ internal class TemplateService(
 
     fun templateDetails(name: String): TemplateDetailsDto {
         return TemplateEntity.findByUniqueName(name)?.let {
-            TemplateDetailsDto(
-                it.name,
-                it.creationDate.time,
-                it.width,
-                it.height,
-                0,//TODO
-            )
+            templateEntityToDto(it)
         } ?: throw TemplateExceptions.templateNotFound(name)
     }
 
@@ -140,13 +134,7 @@ internal class TemplateService(
         tpl.persist()
         invalidateCachedWithTemplate(tplName)
 
-        return TemplateDetailsDto(
-            tpl.name,
-            tpl.creationDate.time,
-            tpl.width,
-            tpl.height,
-            0,//TODO
-        )
+        return templateEntityToDto(tpl)
     }
 
     fun addItem(tplName: String, desc: String, x: Int, y: Int, z: Int, img: ByteArray): TemplateItemDto {
@@ -334,6 +322,17 @@ internal class TemplateService(
     }
 
     private fun imgStoragePath(item: TemplateItemEntity): Path = imgDir.resolve("${item.template.uniqueName}/${item.imgId.toULong()}")
+
+    private fun templateEntityToDto(tpl: TemplateEntity): TemplateDetailsDto {
+        val itemCount = TemplateItemEntity.countByTemplate(tpl)
+        return TemplateDetailsDto(
+            tpl.name,
+            tpl.creationDate.time,
+            tpl.width,
+            tpl.height,
+            itemCount,
+        )
+    }
 
     private fun itemEntityToDto(entity: TemplateItemEntity) = TemplateItemDto(
         entity.imgId.toULong().toString(),

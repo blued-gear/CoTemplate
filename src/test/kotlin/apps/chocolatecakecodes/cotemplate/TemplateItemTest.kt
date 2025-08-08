@@ -144,6 +144,22 @@ internal class TemplateItemTest {
     }
 
     @Test
+    fun addItemIncreasesCount() {
+        val tpl = setupTemplate()
+        uploadItem(tpl.uniqueName, "i 1", 1, 2, 0, IMG1)
+        uploadItem(tpl.uniqueName, "i 1", 1, 2, 0, IMG1)
+
+        When {
+            this.get("/api/templates/${tpl.uniqueName}")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+            this.extract().body().`as`(TemplateDetailsDto::class.java).let { resp ->
+                resp.templateCount shouldBe 2
+            }
+        }
+    }
+
+    @Test
     fun getItemImage() {
         val tpl = setupTemplate()
         uploadItem(tpl.uniqueName, "i 1", 0, 0, 0, IMG1)
@@ -181,6 +197,36 @@ internal class TemplateItemTest {
             this.statusCode(HttpStatus.SC_OK)
             this.extract().body().`as`(TemplateItemsDto::class.java).let { resp ->
                 resp.items.shouldContainExactlyInAnyOrder(item2)
+            }
+        }
+    }
+
+    @Test
+    fun deleteItemDecreasesCount() {
+        val tpl = setupTemplate()
+        val item = uploadItem(tpl.uniqueName, "i 1", 1, 2, 0, IMG1)
+
+        When {
+            this.get("/api/templates/${tpl.uniqueName}")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+            this.extract().body().`as`(TemplateDetailsDto::class.java).let { resp ->
+                resp.templateCount shouldBe 1
+            }
+        }
+
+        When {
+            this.delete("/api/templates/${tpl.uniqueName}/items/${item.id}")
+        } Then {
+            this.statusCode(HttpStatus.SC_NO_CONTENT)
+        }
+
+        When {
+            this.get("/api/templates/${tpl.uniqueName}")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+            this.extract().body().`as`(TemplateDetailsDto::class.java).let { resp ->
+                resp.templateCount shouldBe 0
             }
         }
     }

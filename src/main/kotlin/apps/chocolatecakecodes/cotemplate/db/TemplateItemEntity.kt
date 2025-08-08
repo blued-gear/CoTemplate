@@ -50,5 +50,9 @@ internal class TemplateItemEntity() : PanacheEntity() {
         fun findAllByTemplateAndImageId(template: TemplateEntity, imgIds: Set<Long>): List<TemplateItemEntity> {
             return find("template = ?1 and imgId in ?2", template, imgIds).list()
         }
+
+        fun countByTemplate(template: TemplateEntity): Int {
+            return find("template = ?1", template).count().toInt()
+        }
     }
 }
