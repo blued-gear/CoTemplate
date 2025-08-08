@@ -126,6 +126,29 @@ internal class TemplateService(
         } ?: throw TemplateExceptions.templateNotFound(name)
     }
 
+    @Transactional
+    fun updateTemplateSize(tplName: String, width: Int, height: Int): TemplateDetailsDto {
+        if(width <= 0 || height <= 0 || width > MAX_TEMPLATE_DIMENSION || height > MAX_TEMPLATE_DIMENSION)
+            throw TemplateExceptions.invalidDimensions()
+
+        val tpl = TemplateEntity.findByUniqueName(tplName)
+            ?: throw TemplateExceptions.templateNotFound(tplName)
+
+        tpl.width = width
+        tpl.height = height
+
+        tpl.persist()
+        invalidateCachedWithTemplate(tplName)
+
+        return TemplateDetailsDto(
+            tpl.name,
+            tpl.creationDate.time,
+            tpl.width,
+            tpl.height,
+            0,//TODO
+        )
+    }
+
     fun addItem(tplName: String, desc: String, x: Int, y: Int, z: Int, img: ByteArray): TemplateItemDto {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
@@ -339,6 +362,15 @@ internal class TemplateService(
             if(components[0] != tpl) return@invalidateIf false
             val items = components[1] as Set<ULong>
             return@invalidateIf items.contains(item)
+        }.await().indefinitely()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun invalidateCachedWithTemplate(tpl: String) {
+        renderCache.invalidateIf {
+            val components = (it as CompositeCacheKey).keyElements
+            assert(components.size == 2)
+            return@invalidateIf components[0] == tpl
         }.await().indefinitely()
     }
 }

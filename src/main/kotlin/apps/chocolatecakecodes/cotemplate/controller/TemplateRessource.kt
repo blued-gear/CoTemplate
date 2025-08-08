@@ -26,6 +26,12 @@ internal class TemplateRessource (
         return templateService.createTemplate(args.name, args.width, args.height)
     }
 
+    @PUT
+    @Path("/{name}/size")
+    fun updateTemplateSize(@RestPath name: String, @RequestBody args: TemplateUpdateSizeDto): TemplateDetailsDto {
+        return templateService.updateTemplateSize(name, args.width, args.height)
+    }
+
     @GET
     @Path("/{name}/items")
     fun getTemplateItems(@RestPath name: String): TemplateItemsDto {
