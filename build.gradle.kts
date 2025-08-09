@@ -1,8 +1,13 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.allopen") version "2.1.21"
     kotlin("plugin.serialization") version "2.1.21"
     id("io.quarkus")
+
+    id("io.smallrye.openapi") version "4.1.1"
+    id("org.openapi.generator") version "7.14.0"
 
     idea
 }
@@ -79,4 +84,27 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     this.environment("COTEMPLATE_IMG_STORAGE", "${project.projectDir}/tmp/serverImg-test")
+}
+
+tasks.register<GenerateTask>("genApiJs") {
+    group = "ui"
+    dependsOn("generateOpenApiSpec")
+
+    this.generatorName = "typescript-fetch"
+    this.inputSpec.set(project.layout.buildDirectory.file("generated/openapi/openapi.json").get().asFile.path)
+    this.outputDir.set(project.projectDir.path + "/src/main/webui/src/lib/js/api")
+    this.configOptions.putAll(mapOf(
+        Pair("fileNaming", "kebab-case"),
+        Pair("modelPropertyNaming", "original"),
+        Pair("paramNaming", "original"),
+        Pair("useSingleRequestParameter", "false"),
+    ))
+}
+
+tasks.register<Exec>("buildUi") {
+    group = "ui"
+    dependsOn("genApiJs")
+
+    workingDir = File(project.projectDir, "src/main/webui")
+    commandLine("npm", "run", "build")
 }

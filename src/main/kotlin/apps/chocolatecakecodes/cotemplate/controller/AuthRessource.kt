@@ -8,6 +8,7 @@ import jakarta.annotation.security.PermitAll
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.core.Context
+import org.eclipse.microprofile.openapi.annotations.Operation
 
 @Path("api/auth")
 internal class AuthRessource {
@@ -15,6 +16,11 @@ internal class AuthRessource {
     @GET
     @Path("id")
     @PermitAll
+    @Operation(
+        operationId = "getUserInfo",
+        summary = "returns information about the current user",
+        description = "info: is logged in, role, team name, associated template"
+    )
     fun getUserInfo(@Context auth: SecurityIdentity): UserInfoDto {
         val identity = CotemplateSecurityIdentity.parse(auth)
         return if(identity.isAnonymous) {

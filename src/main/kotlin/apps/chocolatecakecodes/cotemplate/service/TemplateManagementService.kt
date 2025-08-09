@@ -100,7 +100,7 @@ internal class TemplateManagementService(
     }
 
     @Transactional
-    fun updateTemplateTeamCreatePermission(ident: CotemplateSecurityIdentity, tplName: String, policy: TeamCreatePolicy): TemplateDetailsDto {
+    fun updateTemplateTeamCreatePolicy(ident: CotemplateSecurityIdentity, tplName: String, policy: TeamCreatePolicy): TemplateDetailsDto {
         checkTemplateAccess("modifying template settings", ident, tplName)
 
         val tpl = TemplateEntity.findByUniqueName(tplName)

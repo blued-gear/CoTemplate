@@ -11,6 +11,8 @@ import io.quarkus.security.identity.SecurityIdentity
 import jakarta.annotation.security.PermitAll
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Context
+import jakarta.ws.rs.core.MediaType
+import org.eclipse.microprofile.openapi.annotations.Operation
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody
 import org.jboss.resteasy.reactive.*
 import org.jboss.resteasy.reactive.multipart.FileUpload
@@ -26,6 +28,10 @@ internal class TemplateRessource (
     @GET
     @Path("/{name}")
     @PermitAll
+    @Operation(
+        operationId = "templateDetails",
+        summary = "get details about the template"
+    )
     fun templateDetails(@RestPath name: String): TemplateDetailsDto {
         return templateService.templateDetails(name)
     }
@@ -33,6 +39,10 @@ internal class TemplateRessource (
     @POST
     @ResponseStatus(RestResponse.StatusCode.CREATED)
     @PermitAll
+    @Operation(
+        operationId = "createTemplate",
+        summary = "create a new template (+ owner account)"
+    )
     fun createTemplate(@RequestBody args: TemplateCreateDto): TemplateCreatedDto {
         return templateService.createTemplate(args.name, args.width, args.height, args.teamCreatePolicy)
     }
@@ -40,6 +50,10 @@ internal class TemplateRessource (
     @PUT
     @Path("/{name}/size")
     @Authenticated
+    @Operation(
+        operationId = "updateTemplateSize",
+        summary = "set the size of the template"
+    )
     fun updateTemplateSize(@RestPath name: String, @RequestBody args: TemplateUpdateSizeDto, @Context auth: SecurityIdentity): TemplateDetailsDto {
         val identity = CotemplateSecurityIdentity.parse(auth)
         return templateService.updateTemplateSize(identity, name, args.width, args.height)
@@ -48,13 +62,22 @@ internal class TemplateRessource (
     @PUT
     @Path("/{name}/teamCreatePolicy")
     @Authenticated
-    fun updateTemplateSize(@RestPath name: String, @RequestBody args: TemplateUpdateTeamCreatePolicyDto, @Context auth: SecurityIdentity): TemplateDetailsDto {
+    @Operation(
+        operationId = "updateTemplateTeamCreatePolicy",
+        summary = "sets the updateTemplateTeamCreatePolicy for the template",
+        description = "(only owner is permitted to do so)"
+    )
+    fun updateTemplateTeamCreatePolicy(@RestPath name: String, @RequestBody args: TemplateUpdateTeamCreatePolicyDto, @Context auth: SecurityIdentity): TemplateDetailsDto {
         val identity = CotemplateSecurityIdentity.parse(auth)
-        return templateService.updateTemplateTeamCreatePermission(identity, name, args.policy)
+        return templateService.updateTemplateTeamCreatePolicy(identity, name, args.policy)
     }
 
     @GET
     @Path("/{name}/teams")
+    @Operation(
+        operationId = "getTeams",
+        summary = "list all teams of the template"
+    )
     fun getTeams(@RestPath name: String): TemplateTeamsDto {
         return teamService.getTeams(name)
     }
@@ -62,6 +85,10 @@ internal class TemplateRessource (
     @POST
     @Path("/{name}/teams/{team}")
     @ResponseStatus(RestResponse.StatusCode.CREATED)
+    @Operation(
+        operationId = "createTeam",
+        summary = "creates a new team and returns its credentials"
+    )
     fun createTeam(@RestPath name: String, @RestPath team: String, @Context auth: SecurityIdentity): TeamCreatedDto {
         val identity = CotemplateSecurityIdentity.parse(auth)
         return teamService.createTeam(identity, name, team)
@@ -70,6 +97,10 @@ internal class TemplateRessource (
     @GET
     @Path("/{name}/items")
     @PermitAll
+    @Operation(
+        operationId = "getTemplateItems",
+        summary = "get details of all images for the template"
+    )
     fun getTemplateItems(@RestPath name: String): TemplateItemsDto {
         return itemService.getItems(name)
     }
@@ -77,6 +108,10 @@ internal class TemplateRessource (
     @GET
     @Path("/{name}/items/{id}/details")
     @PermitAll
+    @Operation(
+        operationId = "getTemplateItemDetails",
+        summary = "get the settings of an image"
+    )
     fun getTemplateItemDetails(@RestPath name: String, @RestPath("id") idStr: String): TemplateItemDto {
         return itemService.getItemDetails(name, parseItemId(idStr))
     }
@@ -85,6 +120,10 @@ internal class TemplateRessource (
     @Path("/{name}/items/{id}/image")
     @Produces("image/png")
     @PermitAll
+    @Operation(
+        operationId = "getTemplateItemImage",
+        summary = "get the content of an image"
+    )
     fun getTemplateItemImage(@RestPath name: String, @RestPath("id") idStr: String): ByteArray {
         return itemService.getItemImage(name, parseItemId(idStr))
     }
@@ -92,7 +131,12 @@ internal class TemplateRessource (
     @POST
     @Path("/{name}/items")
     @ResponseStatus(RestResponse.StatusCode.CREATED)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Authenticated
+    @Operation(
+        operationId = "addTemplateItem",
+        summary = "add image (must be png)"
+    )
     fun addTemplateItem(
         @RestPath name: String,
         @RestForm("description") desc: String,
@@ -109,6 +153,10 @@ internal class TemplateRessource (
     @PUT
     @Path("/{name}/items/{id}/details")
     @Authenticated
+    @Operation(
+        operationId = "updateTemplateItemDetails",
+        summary = "update settings of image"
+    )
     fun updateTemplateItemDetails(
         @RestPath name: String,
         @RestPath("id") idStr: String,
@@ -129,7 +177,12 @@ internal class TemplateRessource (
 
     @PUT
     @Path("/{name}/items/{id}/image")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Authenticated
+    @Operation(
+        operationId = "updateTemplateItemImage",
+        summary = "replace the content of an image while keeping its settings"
+    )
     fun updateTemplateItemImage(
         @RestPath name: String,
         @RestPath("id") idStr: String,
@@ -144,6 +197,10 @@ internal class TemplateRessource (
     @Path("/{name}/items/{id}")
     @ResponseStatus(RestResponse.StatusCode.NO_CONTENT)
     @Authenticated
+    @Operation(
+        operationId = "deleteTemplateItem",
+        summary = "delete an image"
+    )
     fun deleteTemplateItem(@RestPath name: String, @RestPath("id") idStr: String, @Context auth: SecurityIdentity) {
         val identity = CotemplateSecurityIdentity.parse(auth)
         itemService.deleteItem(identity, name, parseItemId(idStr))
@@ -153,6 +210,10 @@ internal class TemplateRessource (
     @Path("/{name}/template")
     @Produces("image/png")
     @PermitAll
+    @Operation(
+        operationId = "renderTemplate",
+        summary = "returns a png with all selected images on transparent background; if images = 'all' all images are selected"
+    )
     fun renderTemplate(@RestPath name: String, @RestQuery images: String?): ByteArray {
         if(images == "all") {
             return itemService.renderAll(name)
