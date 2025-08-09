@@ -1,8 +1,11 @@
 package apps.chocolatecakecodes.cotemplate
 
-import apps.chocolatecakecodes.cotemplate.util.CleanupHelper
-import apps.chocolatecakecodes.cotemplate.util.createTemplate
+import apps.chocolatecakecodes.cotemplate.dto.UserInfo
+import apps.chocolatecakecodes.cotemplate.dto.UserInfoDto
+import apps.chocolatecakecodes.cotemplate.util.*
+import io.kotest.matchers.shouldBe
 import io.quarkus.test.junit.QuarkusTest
+import io.restassured.module.kotlin.extensions.Extract
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
@@ -86,5 +89,64 @@ internal class AuthTest {
         }
     }
 
-    //TODO tests for template owner, etc.
+    @Test
+    fun idForGuest() {
+        When {
+            this.get("/api/auth/id")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+        } Extract {
+            this.body().`as`(UserInfoDto::class.java)
+        } Let { resp ->
+            resp.isGuest shouldBe true
+            resp.info shouldBe null
+        }
+    }
+
+    @Test
+    fun idForOwner() {
+        val tpl = createTemplate("tpl1")
+        val auth = login(tpl)
+
+        Given {
+            this.cookie(auth)
+        } When {
+            this.get("/api/auth/id")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+        } Extract {
+            this.body().`as`(UserInfoDto::class.java)
+        } Let { resp ->
+            resp.isGuest shouldBe false
+            resp.info shouldBe UserInfo(
+                tpl.uniqueName,
+                "owner",
+                "TEMPLATE_OWNER",
+            )
+        }
+    }
+
+    @Test
+    fun idForTeam() {
+        val tpl = createTemplate("tpl1")
+        val team = createTeam(tpl.uniqueName, "a")
+        val auth = login(team)
+
+        Given {
+            this.cookie(auth)
+        } When {
+            this.get("/api/auth/id")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+        } Extract {
+            this.body().`as`(UserInfoDto::class.java)
+        } Let { resp ->
+            resp.isGuest shouldBe false
+            resp.info shouldBe UserInfo(
+                tpl.uniqueName,
+                "a",
+                "TEMPLATE_TEAM",
+            )
+        }
+    }
 }
