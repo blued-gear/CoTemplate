@@ -38,7 +38,7 @@ dependencies {
     implementation("io.quarkus:quarkus-security")
     implementation("io.quarkus:quarkus-cache")
     implementation("io.quarkus:quarkus-arc")
-    //implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.5.5")
+    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.6.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.3")
