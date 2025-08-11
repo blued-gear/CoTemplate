@@ -48,8 +48,8 @@ internal class TemplateTeamService(
         try {
             return createTeam0(tpl, teamName)
         } catch(e: RollbackException) {
-            val violatedConstraint = (e.cause as? ConstraintViolationException)?.constraintName
-            if(violatedConstraint != null && violatedConstraint.contains("uc_user_unique_name", true)) {
+            val violatedConstraintKind = (e.cause as? ConstraintViolationException)?.kind
+            if(violatedConstraintKind == ConstraintViolationException.ConstraintKind.UNIQUE) {
                 throw TemplateExceptions.teamAlreadyExists(teamName, tplName)
             } else {
                 throw e

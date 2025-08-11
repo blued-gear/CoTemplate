@@ -39,8 +39,8 @@ internal class TemplateManagementService(
         val tpl = try {
              createTemplate0(name, width, height, teamCreatePolicy)
         } catch(e: RollbackException) {
-            val violatedConstraint = (e.cause as? ConstraintViolationException)?.constraintName
-            if(violatedConstraint != null && violatedConstraint.contains("uc_template_unique_name", true)) {
+            val violatedConstraintKind = (e.cause as? ConstraintViolationException)?.kind
+            if(violatedConstraintKind == ConstraintViolationException.ConstraintKind.UNIQUE) {
                 throw TemplateExceptions.templateAlreadyExists(name)
             } else {
                 throw e
