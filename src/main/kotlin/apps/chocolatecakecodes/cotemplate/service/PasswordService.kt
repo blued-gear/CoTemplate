@@ -19,7 +19,7 @@ internal class PasswordService {
     private val rng = SecureRandom()
 
     fun generateRandomPassword(len: Int = 24): String {
-        val chars = CharArray(len) { passwordChars[rng.nextInt(len)] }
+        val chars = CharArray(len) { passwordChars[rng.nextInt(passwordChars.size)] }
         return String(chars)
     }
 
