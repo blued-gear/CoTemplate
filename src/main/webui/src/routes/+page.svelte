@@ -1,13 +1,18 @@
-<script>
-    import {Alert} from "flowbite-svelte";
+<script lang="ts">
+    import {TabItem, Tabs} from "flowbite-svelte";
+    import OpenTemplate from "$lib/components/OpenTemplate.svelte";
+    import CreateTemplate from "$lib/components/CreateTemplate.svelte";
 </script>
 
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
-
-<div class="p-8">
-    <Alert>
-        <span class="font-medium">Info alert!</span>
-        Change a few things up and try submitting again.
-    </Alert>
+<div class="flex p-4 w-screen h-screen justify-center items-center">
+    <div class="w-xl max-w-5/6 h-max p-5 flex flex-col justify-center items-center border rounded-xs">
+        <Tabs tabStyle="underline">
+            <TabItem title="Open" open>
+                <OpenTemplate />
+            </TabItem>
+            <TabItem title="Create">
+                <CreateTemplate />
+            </TabItem>
+        </Tabs>
+    </div>
 </div>
