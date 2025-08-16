@@ -209,6 +209,7 @@ internal class TemplateRessource (
     @GET
     @Path("/{name}/template")
     @Produces("image/png")
+    @Cache(noStore = true)
     @PermitAll
     @Operation(
         operationId = "renderTemplate",
