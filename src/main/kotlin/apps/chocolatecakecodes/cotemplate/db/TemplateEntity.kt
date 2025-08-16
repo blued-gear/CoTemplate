@@ -46,7 +46,7 @@ internal class TemplateEntity() : PanacheEntity() {
         }
 
         fun findAllOverAge(age: Instant): List<TemplateEntity> {
-            return find("creationDate < ?", age).list()
+            return find("creationDate < ?1", age).list()
         }
     }
 }
