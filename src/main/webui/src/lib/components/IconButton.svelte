@@ -4,7 +4,7 @@
 
     interface Props {
         icon: string;
-        onClick: () => void;
+        onClick: ((e: MouseEvent) => void) | (() => void);
         small?: boolean;
         classO?: string;
     }

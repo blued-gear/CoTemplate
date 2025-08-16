@@ -206,7 +206,7 @@
                 <div class="flex flex-row justify-between">
                     <div>{img.team}</div>
                     {#if img.team === data.teamName}
-                        <IconButton icon="mdi:pencil" onClick={(e) => editImg(e, img)}/>
+                        <IconButton icon="mdi:pencil" onClick={(e: MouseEvent) => editImg(e, img)}/>
                     {/if}
                 </div>
                 <img class="max-w-full max-h-20 contain-content" src={`${API_PATH}/templates/${data.tplId}/items/${img.id}/image`} alt="{img.description}" />
