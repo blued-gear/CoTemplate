@@ -25,7 +25,7 @@ export async function logout(): Promise<Err | null> {
         method: "POST",
     });
 
-    if(resp.status !== 200)
+    if(resp.status !== 204)
         return {
             code: resp.status,
             message: await resp.text(),

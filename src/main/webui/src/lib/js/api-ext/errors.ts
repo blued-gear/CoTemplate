@@ -9,7 +9,7 @@ interface ExceptionBody {
     message: string;
 }
 
-export async function parseHttpException(e: Error): Promise<Err | null> {
+export async function parseHttpException(e: unknown): Promise<Err | null> {
     if(!(e instanceof ResponseError))
         return null;
     if(!e.response.headers.get('content-type')?.startsWith("application/json"))

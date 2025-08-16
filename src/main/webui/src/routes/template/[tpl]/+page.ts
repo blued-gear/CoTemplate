@@ -1,0 +1,54 @@
+import {error, type LoadEvent} from "@sveltejs/kit";
+import type {TemplateDetailsDto} from "$lib/js/api";
+import {API, ERROR_PAGE_UNKNOWN_CODE} from "$lib/js/constants";
+import {parseHttpException} from "$lib/js/api-ext/errors";
+import {ROLE_GUEST} from "$lib/js/api-ext/roles";
+
+export interface PageData {
+    tplId: string;
+    tplInfo: TemplateDetailsDto;
+    teamName: string | null;
+    userRole: string;
+}
+
+export async function load({ params }: LoadEvent): Promise<PageData> {
+    const tplId = params.tpl!;
+
+    let tplInfo: TemplateDetailsDto;
+    try {
+        tplInfo = await API.templateDetails(tplId);
+    } catch(e) {
+        console.error(e);
+        const err = await parseHttpException(e);
+        if(err != null) {
+            error(err.code, err.message);
+        } else {
+            error(ERROR_PAGE_UNKNOWN_CODE, "template_info");
+        }
+    }
+
+    let team: string | null = null;
+    let role = ROLE_GUEST;
+    try {
+        const info = await API.getUserInfo();
+        if(!info.isGuest && info.info?.template === tplId) {
+            team = info.info.team;
+            role = info.info.team;
+        }
+    } catch(e) {
+        console.error(e);
+        const err = await parseHttpException(e);
+        if(err != null) {
+            error(err.code, err.message);
+        } else {
+            error(ERROR_PAGE_UNKNOWN_CODE, "user_info");
+        }
+    }
+
+    return {
+        tplId: tplId,
+        tplInfo: tplInfo,
+        teamName: team,
+        userRole: role,
+    };
+}
