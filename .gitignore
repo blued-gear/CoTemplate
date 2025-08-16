@@ -1,6 +1,7 @@
 # Gradle
 .gradle/
 build/
+/.kotlin/sessions/kotlin-compiler-6726530136036607126.salive
 
 # Eclipse
 .project

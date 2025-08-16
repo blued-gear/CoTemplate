@@ -1,5 +1,6 @@
 import {API_PATH} from "$lib/js/constants";
 import type {Err} from "./errors";
+import {sleep} from "$lib/js/utils";
 
 export async function login(template: string, username: string, password: string): Promise<Err | null> {
     const body = new URLSearchParams();
@@ -12,11 +13,17 @@ export async function login(template: string, username: string, password: string
         body: body,
     });
 
-    if(resp.status !== 200)
+    if(resp.status !== 200) {
         return {
             code: resp.status,
             message: await resp.text(),
         };
+    }
+
+    // ensure response is processed by the browser
+    await resp.text();
+    await sleep(10);
+
     return null;
 }
 
@@ -25,10 +32,16 @@ export async function logout(): Promise<Err | null> {
         method: "POST",
     });
 
-    if(resp.status !== 204)
+    if(resp.status !== 204) {
         return {
             code: resp.status,
             message: await resp.text(),
         };
+    }
+
+    // ensure response is processed by the browser
+    await resp.text();
+    await sleep(100);
+
     return null;
 }

@@ -162,7 +162,7 @@
             console.error("error when logging out", err);
         }
 
-        setTimeout(() => location.reload(), 500);
+        location.reload();
     }
 
     async function reload() {
