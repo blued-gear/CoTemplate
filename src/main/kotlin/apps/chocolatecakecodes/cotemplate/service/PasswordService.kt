@@ -24,7 +24,7 @@ internal class PasswordService {
     }
 
     fun hashPassword(password: String): String {
-        return BcryptUtil.bcryptHash(password, 14)
+        return BcryptUtil.bcryptHash(password, 14)//TODO maybe lower the iteration count
     }
 
     fun checkPassword(password: String, hash: String): Boolean {
