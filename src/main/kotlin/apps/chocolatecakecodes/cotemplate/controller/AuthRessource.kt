@@ -4,7 +4,9 @@ import apps.chocolatecakecodes.cotemplate.auth.CotemplateSecurityIdentity
 import apps.chocolatecakecodes.cotemplate.dto.UserInfo
 import apps.chocolatecakecodes.cotemplate.dto.UserInfoDto
 import io.quarkus.security.identity.SecurityIdentity
+import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerResponse
+import io.vertx.core.http.impl.CookieImpl
 import jakarta.annotation.security.PermitAll
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.POST
@@ -19,6 +21,8 @@ import org.jboss.resteasy.reactive.RestResponse
 internal class AuthRessource(
     @param:ConfigProperty(name = "quarkus.http.auth.form.cookie-name")
     private val authCookieName: String,
+    @param:ConfigProperty(name = "quarkus.http.auth.form.cookie-path")
+    private val authCookiePath: String,
 ) {
 
     @GET
@@ -48,5 +52,14 @@ internal class AuthRessource(
     )
     fun logout(resp: HttpServerResponse) {
         resp.removeCookies(authCookieName, true)
+
+        // overwrite with matching path
+        CookieImpl(authCookieName, "").apply {
+            this.maxAge = 0
+            this.path = authCookiePath
+            this.isHttpOnly = true
+            this.isSecure = true
+            this.sameSite = CookieSameSite.STRICT
+        }.also { resp.addCookie(it) }
     }
 }
