@@ -9,6 +9,7 @@
     } from "$lib/js/api";
     import {API} from "$lib/js/constants";
     import {parseHttpException} from "$lib/js/api-ext/errors";
+    import Icon from "@iconify/svelte";
 
     interface Props {
         onCreated: (resp: TemplateCreatedDto) => void;
@@ -44,7 +45,12 @@
 </script>
 
 <form onsubmit={submit}>
-    <Toast class="mb-2 max-w-full!" toastStatus={toastError}>
+    <Toast toastStatus={toastError} color="red" class="mb-2 max-w-full!">
+        {#snippet icon()}
+            <Icon class="h-5 w-5" icon="mdi:alert-circle-outline" />
+            <span class="sr-only">Warning icon</span>
+        {/snippet}
+
         Unable to create template:
         {apiErrMsg}
     </Toast>

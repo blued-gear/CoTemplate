@@ -4,8 +4,8 @@
     import type {PageData} from "./+page.ts";
     import {API, API_PATH, STORAGE_SELECTED_ITEMS} from "$lib/js/constants";
     import IconButton from "$lib/components/IconButton.svelte";
-    import type {TemplateItemDto} from "$lib/js/api";
-    import {POWER_EDIT_TPL, ROLE_GUEST} from "$lib/js/api-ext/roles";
+    import {TeamCreatePolicy, type TemplateItemDto} from "$lib/js/api";
+    import {POWER_EDIT_TPL, POWER_VIEW, ROLE_GUEST} from "$lib/js/api-ext/roles";
     import {logout} from "$lib/js/api-ext/auth";
     import type {ImgProperties} from "$lib/js/types";
     import ImgEditDlg from "$lib/components/ImgEditDlg.svelte";
@@ -13,6 +13,7 @@
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import TemplateSettings from "$lib/components/TemplateSettings.svelte";
     import {invalidateAll} from "$app/navigation";
+    import TeamAddDlg from "$lib/components/TeamAddDlg.svelte";
 
     const drawerTransitionRight = {
         x: 320,
@@ -34,6 +35,7 @@
     let images: ImageItem[] = $state([]);
     let showImgEditDlg = $state(false);
     let showImgAddDlg = $state(false);
+    let showTeamAddDlg = $state(false);
     let editingImg: ImgProperties | null = $state(null);
     let tplSettingsSizeW = $derived(data.tplInfo.width!);
     let tplSettingsSizeH = $derived(data.tplInfo.height!);
@@ -263,7 +265,9 @@
         <div class="flex flex-col gap-6">
             <!-- TODO show when tpl was created and how much time left until deletion -->
 
-            <div class="p-1 flex flex-col gap-4 border rounded-sm">
+            <Button disabled={data.userPower < (data.tplInfo.teamCreatePolicy === TeamCreatePolicy.Everyone ? POWER_VIEW : POWER_EDIT_TPL)} onclick={() => showTeamAddDlg = true}>Create Team</Button>
+
+            <div class="p-2 flex flex-col gap-4 border rounded-sm">
                 <div>Template Settings</div>
                 <TemplateSettings bind:sizeW={tplSettingsSizeW} bind:sizeH={tplSettingsSizeH} bind:teamCreatePolicy={tplSettingsTCP} />
                 <Button disabled={data.userPower < POWER_EDIT_TPL} onclick={onApplySettings}>Apply</Button>
@@ -273,6 +277,7 @@
 
     <ImgEditDlg bind:open={showImgAddDlg} create onSubmit={onAddImg} />
     <ImgEditDlg bind:open={showImgEditDlg} create={false} initialData={editingImg} onSubmit={onEditedImg} />
+    <TeamAddDlg bind:open={showTeamAddDlg} tplId={data.tplId} />
 
     <Toast toastStatus={errMsg != null} color="red" class="absolute mb-4 ml-4 z-50">
         {#snippet icon()}
