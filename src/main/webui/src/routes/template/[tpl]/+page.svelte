@@ -247,14 +247,17 @@
         {/if}
 
         {#each images as img}
-            <div class={{"mt-4": true, "p-1": true, "border": true, "border-green-400": img.selected, "border-gray-600": !img.selected}} onclick={() => toggleSelectedImage(img)}>
+            <div
+                    class={{"mt-4": true, "p-1": true, "flex": true, "flex-col": true, "border": true, "border-green-400": img.selected, "border-gray-600": !img.selected}}
+                    onclick={() => toggleSelectedImage(img)}
+            >
                 <div class="flex flex-row justify-between">
                     <div>{img.team}</div>
                     {#if img.team === data.teamName}
                         <IconButton icon="mdi:pencil" onClick={(e: MouseEvent) => editImg(e, img)}/>
                     {/if}
                 </div>
-                <img class="max-w-full max-h-20 contain-content" src={`${API_PATH}/templates/${data.tplId}/items/${img.id}/image`} alt="{img.description}" />
+                <img class="my-2 w-full max-w-fit max-h-20 self-center contain-content" src={`${API_PATH}/templates/${data.tplId}/items/${img.id}/image`} alt="{img.description}" />
                 <div class="w-full max-h-20 overflow-hidden">{img.description}</div>
                 <Popover>{img.description}</Popover>
             </div>
