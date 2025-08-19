@@ -19,8 +19,9 @@
 
     // reset selected file on open
     $effect(() => {
-        if(open && selectedImage != null)
+        if(!open) {
             selectedImage = null;
+        }
     });
 
     function submit() {
