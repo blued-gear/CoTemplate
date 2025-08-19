@@ -7,8 +7,9 @@
         onClick: ((e: MouseEvent) => void) | (() => void);
         small?: boolean;
         classO?: string;
+        stopClickPropagation?: boolean;
     }
-    const { icon, onClick, small = false, classO = "" }: Props = $props();
+    const { icon, onClick, small = false, classO = "", stopClickPropagation = false }: Props = $props();
 
     const btnClass = $derived.by(() => {
         const classes: Record<string, boolean> = {};
@@ -22,7 +23,13 @@
         classO.split(" ").forEach(c => classes[c] = true);
 
         return classes;
-    })
+    });
+
+    function clicked(e: MouseEvent) {
+        if(stopClickPropagation)
+            e.stopPropagation();
+        onClick(e);
+    }
 </script>
 
-<Button class={btnClass} onclick={onClick}><Icon icon="{icon}"></Icon></Button>
+<Button class={btnClass} onclick={clicked}><Icon icon="{icon}"></Icon></Button>

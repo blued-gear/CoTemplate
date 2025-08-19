@@ -123,9 +123,7 @@
         await reload();
     }
 
-    function editImg(e: MouseEvent, img: ImageItem) {
-        e.stopPropagation();// prevent toggling selection
-
+    function editImg(img: ImageItem) {
         editingImg = {
             id: img.id,
             description: img.description,
@@ -157,6 +155,30 @@
             } else {
                 console.error("unable to add image", e);
                 errMsg = `unable to add image`;
+            }
+        }
+
+        await reload();
+    }
+
+    async function onRemoveImg(img: ImageItem) {
+        try {
+            await API.deleteTemplateItem(img.id, data.tplId);
+
+            // remove from stored selection
+            const selected: string[] = getSelectedItems();
+            const idx = selected.indexOf(img.id);
+            if(idx !== -1)
+                selected.splice(idx, 1);
+            setSelectedItems(selected);
+        } catch(e) {
+            const err = await parseHttpException(e);
+            if(err != null) {
+                console.error("unable to remove image", err);
+                errMsg = `unable to remove image: ${err.message}`;
+            } else {
+                console.error("unable to remove image", e);
+                errMsg = `unable to remove image`;
             }
         }
 
@@ -253,8 +275,11 @@
             >
                 <div class="flex flex-row justify-between">
                     <div>{img.team}</div>
-                    {#if img.team === data.teamName}
-                        <IconButton icon="mdi:pencil" onClick={(e: MouseEvent) => editImg(e, img)}/>
+                    {#if img.team === data.teamName || data.userPower >= POWER_EDIT_TPL}
+                        <div class="flex flex-row gap-2">
+                            <IconButton icon="mdi:pencil" stopClickPropagation onClick={() => editImg(img)}/>
+                            <IconButton icon="mdi:trash" stopClickPropagation onClick={() => onRemoveImg(img)}/>
+                        </div>
                     {/if}
                 </div>
                 <img class="my-2 w-full max-w-fit max-h-20 self-center contain-content" src={`${API_PATH}/templates/${data.tplId}/items/${img.id}/image`} alt="{img.description}" />
