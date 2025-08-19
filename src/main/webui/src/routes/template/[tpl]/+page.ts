@@ -10,6 +10,7 @@ export interface PageData {
     teamName: string | null;
     userRole: string;
     userPower: number;
+    serverTemplateMaxAge: number;
 }
 
 export async function load({ params }: LoadEvent): Promise<PageData> {
@@ -46,11 +47,19 @@ export async function load({ params }: LoadEvent): Promise<PageData> {
         }
     }
 
+    let maxAge = 0;
+    try {
+        maxAge = await API.maxTemplateAge();
+    } catch(e) {
+        console.error("get maxTemplateAge", e);
+    }
+
     return {
         tplId: tplId,
         tplInfo: tplInfo,
         teamName: team,
         userRole: role,
         userPower: rolePower(role),
+        serverTemplateMaxAge: maxAge,
     };
 }

@@ -30,6 +30,7 @@
 
     let errMsg: string | null = $state(null);
     let imgUrl = $state("");
+    let timeUntilDeletion = $state("");
     let imgDrawerHidden = $state(true);
     let settingsDrawerHidden = $state(true);
     let images: ImageItem[] = $state([]);
@@ -40,6 +41,33 @@
     let tplSettingsSizeW = $derived(data.tplInfo.width!);
     let tplSettingsSizeH = $derived(data.tplInfo.height!);
     let tplSettingsTCP = $derived(data.tplInfo.teamCreatePolicy);
+
+    $effect(() => {
+        function updateTime() {
+            let remaining = (data.tplInfo.createdAt! + data.serverTemplateMaxAge) - Date.now();
+
+            if(remaining < 1000) {
+                timeUntilDeletion = "0s";
+                return;
+            }
+
+            let scale = 1000 * 60 * 60 * 24;
+            const days = Math.floor(remaining / scale);
+            remaining -= days * scale;
+            scale /= 24;
+            const hours = Math.floor(remaining / scale);
+            remaining -= hours * scale;
+            scale /= 60;
+            const minutes = Math.floor(remaining / scale);
+            timeUntilDeletion = `${days}d ${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m`;
+        }
+
+        updateTime();
+        const timerId = setInterval(() => {
+            updateTime()
+        }, 10_000);
+        return () => clearInterval(timerId);
+    });
 
     function computeImgUrl(): string {
         const selected: string[] = getSelectedItems();
@@ -291,7 +319,11 @@
 
     <Drawer placement="right" transitionParams={drawerTransitionRight} bind:hidden={settingsDrawerHidden}>
         <div class="flex flex-col gap-6">
-            <!-- TODO show when tpl was created and how much time left until deletion -->
+            <div class="text-sm">
+                CoTemplate created at {new Date(data.tplInfo.createdAt ?? 0).toLocaleString()}
+                <br/>
+                (will be deleted in {timeUntilDeletion})
+            </div>
 
             <Button disabled={data.userPower < (data.tplInfo.teamCreatePolicy === TeamCreatePolicy.Everyone ? POWER_VIEW : POWER_EDIT_TPL)} onclick={() => showTeamAddDlg = true}>Create Team</Button>
 
