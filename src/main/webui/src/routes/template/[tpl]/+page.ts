@@ -2,13 +2,14 @@ import {error, type LoadEvent} from "@sveltejs/kit";
 import type {TemplateDetailsDto} from "$lib/js/api";
 import {API, ERROR_PAGE_UNKNOWN_CODE} from "$lib/js/constants";
 import {parseHttpException} from "$lib/js/api-ext/errors";
-import {ROLE_GUEST} from "$lib/js/api-ext/roles";
+import {ROLE_GUEST, rolePower} from "$lib/js/api-ext/roles";
 
 export interface PageData {
     tplId: string;
     tplInfo: TemplateDetailsDto;
     teamName: string | null;
     userRole: string;
+    userPower: number;
 }
 
 export async function load({ params }: LoadEvent): Promise<PageData> {
@@ -33,7 +34,7 @@ export async function load({ params }: LoadEvent): Promise<PageData> {
         const info = await API.getUserInfo();
         if(!info.isGuest && info.info?.template === tplId) {
             team = info.info.team;
-            role = info.info.team;
+            role = info.info.role;
         }
     } catch(e) {
         console.error(e);
@@ -50,5 +51,6 @@ export async function load({ params }: LoadEvent): Promise<PageData> {
         tplInfo: tplInfo,
         teamName: team,
         userRole: role,
+        userPower: rolePower(role),
     };
 }

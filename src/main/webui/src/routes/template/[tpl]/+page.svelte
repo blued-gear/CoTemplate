@@ -5,12 +5,14 @@
     import {API, API_PATH, STORAGE_SELECTED_ITEMS} from "$lib/js/constants";
     import IconButton from "$lib/components/IconButton.svelte";
     import type {TemplateItemDto} from "$lib/js/api";
-    import {ROLE_GUEST} from "$lib/js/api-ext/roles";
+    import {POWER_EDIT_TPL, ROLE_GUEST} from "$lib/js/api-ext/roles";
     import {logout} from "$lib/js/api-ext/auth";
     import type {ImgProperties} from "$lib/js/types";
     import ImgEditDlg from "$lib/components/ImgEditDlg.svelte";
     import Icon from "@iconify/svelte";
     import {parseHttpException} from "$lib/js/api-ext/errors";
+    import TemplateSettings from "$lib/components/TemplateSettings.svelte";
+    import {invalidateAll} from "$app/navigation";
 
     const drawerTransitionRight = {
         x: 320,
@@ -33,6 +35,9 @@
     let showImgEditDlg = $state(false);
     let showImgAddDlg = $state(false);
     let editingImg: ImgProperties | null = $state(null);
+    let tplSettingsSizeW = $derived(data.tplInfo.width!);
+    let tplSettingsSizeH = $derived(data.tplInfo.height!);
+    let tplSettingsTCP = $derived(data.tplInfo.teamCreatePolicy);
 
     function computeImgUrl(): string {
         const selected: string[] = getSelectedItems();
@@ -156,6 +161,44 @@
         await reload();
     }
 
+    async function onApplySettings() {
+        errMsg = null;
+
+        if(tplSettingsSizeW !== data.tplInfo.width || tplSettingsSizeH !== data.tplInfo.height) {
+            try {
+                await API.updateTemplateSize(data.tplId, { width: tplSettingsSizeW, height: tplSettingsSizeH });
+            } catch(e) {
+                const err = await parseHttpException(e);
+                if(err != null) {
+                    console.error("unable to update tpl size", err);
+                    errMsg = `unable to update size: ${err.message}`;
+                } else {
+                    console.error("unable to update tpl size", e);
+                    errMsg = `unable to update size`;
+                }
+                return;
+            }
+        }
+
+        if(tplSettingsTCP !== data.tplInfo.teamCreatePolicy) {
+            try {
+                await API.updateTemplateTeamCreatePolicy(data.tplId, { policy: tplSettingsTCP });
+            } catch(e) {
+                const err = await parseHttpException(e);
+                if(err != null) {
+                    console.error("unable to update tpl TCP", err);
+                    errMsg = `unable to update team policy: ${err.message}`;
+                } else {
+                    console.error("unable to update tpl TCP", e);
+                    errMsg = `unable to update team policy`;
+                }
+                return;
+            }
+        }
+
+        await invalidateAll();
+    }
+
     async function onLogout() {
         const err = await logout();
         if(err != null) {
@@ -217,7 +260,15 @@
     </Drawer>
 
     <Drawer placement="right" transitionParams={drawerTransitionRight} bind:hidden={settingsDrawerHidden}>
-        B
+        <div class="flex flex-col gap-6">
+            <!-- TODO show when tpl was created and how much time left until deletion -->
+
+            <div class="p-1 flex flex-col gap-4 border rounded-sm">
+                <div>Template Settings</div>
+                <TemplateSettings bind:sizeW={tplSettingsSizeW} bind:sizeH={tplSettingsSizeH} bind:teamCreatePolicy={tplSettingsTCP} />
+                <Button disabled={data.userPower < POWER_EDIT_TPL} onclick={onApplySettings}>Apply</Button>
+            </div>
+        </div>
     </Drawer>
 
     <ImgEditDlg bind:open={showImgAddDlg} create onSubmit={onAddImg} />
