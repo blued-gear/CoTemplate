@@ -43,7 +43,7 @@ internal class AuthLoginProvider(
         val template = TemplateEntity.findByUniqueName(templateName)
             ?: throw AuthenticationFailedException("template '$templateName' does not exist")
         val user = UserEntity.findByTemplateAndName(template, req.username)
-            ?: throw AuthenticationFailedException("user '${req.username}' does not exist for template '$template'")
+            ?: throw AuthenticationFailedException("user '${req.username}' does not exist for template '${template.uniqueName}'")
         if(!passwordService.checkPassword(String(req.password.password), user.pass))
             throw AuthenticationFailedException("invalid password")
         return user
