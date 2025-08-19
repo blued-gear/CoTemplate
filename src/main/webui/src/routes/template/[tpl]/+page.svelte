@@ -249,6 +249,7 @@
         }
 
         await invalidateAll();
+        await reload();
     }
 
     async function onLogout() {
