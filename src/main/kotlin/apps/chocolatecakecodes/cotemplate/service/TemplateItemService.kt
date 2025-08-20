@@ -60,18 +60,23 @@ internal class TemplateItemService(
             ?: throw TemplateExceptions.templateNotFound(tplName)
         val user = UserEntity.findById(ident.userId)!!
 
+        val entity = addItemInternal(tpl, user, desc, x, y, z, img)
+        return itemEntityToDto(entity)
+    }
+
+    internal fun addItemInternal(tpl: TemplateEntity, user: UserEntity, desc: String, x: Int, y: Int, z: Int, img: ByteArray): TemplateItemEntity {
         val (w, h) = getImageDimensions(img)
         val entity = addItemEntity(tpl, user, desc, x, y, z, w, h)
 
         try {
             Files.write(imgStoragePath(entity), img, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
         } catch(e: Exception) {
-            LOGGER.error("unable to store image for item $tplName::${entity.imgId}", e)
+            LOGGER.error("unable to store image for item ${tpl.uniqueName}::${entity.imgId}", e)
             entity.delete()
             throw e
         }
 
-        return itemEntityToDto(entity)
+        return entity
     }
 
     @Transactional
@@ -211,11 +216,11 @@ internal class TemplateItemService(
         return canvas.bytes(PngWriter.MaxCompression)
     }
 
-    fun mkImageDir(tplName: String) {
+    internal fun mkImageDir(tplName: String) {
         Files.createDirectories(imgDir.resolve(tplName))
     }
 
-    fun rmImageDir(tpl: TemplateEntity) {
+    internal fun rmImageDir(tpl: TemplateEntity) {
         TemplateItemEntity.findAllByTemplate(tpl).forEach { item ->
             try {
                 Files.delete(imgStoragePath(item))
@@ -233,7 +238,7 @@ internal class TemplateItemService(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun invalidateCachedWithItem(tpl: String, item: ULong) {
+    internal fun invalidateCachedWithItem(tpl: String, item: ULong) {
         renderCache.invalidateIf {
             val components = (it as CompositeCacheKey).keyElements
             assert(components.size == 2)
@@ -243,7 +248,7 @@ internal class TemplateItemService(
         }.await().indefinitely()
     }
 
-    fun invalidateCachedWithTemplate(tpl: String) {
+    internal fun invalidateCachedWithTemplate(tpl: String) {
         renderCache.invalidateIf {
             val components = (it as CompositeCacheKey).keyElements
             assert(components.size == 2)
@@ -251,7 +256,7 @@ internal class TemplateItemService(
         }.await().indefinitely()
     }
 
-    private fun imgStoragePath(item: TemplateItemEntity): Path = imgDir.resolve("${item.template.uniqueName}/${item.imgId.toULong()}")
+    internal fun imgStoragePath(item: TemplateItemEntity): Path = imgDir.resolve("${item.template.uniqueName}/${item.imgId.toULong()}")
 
     private fun itemEntityToDto(entity: TemplateItemEntity) = TemplateItemDto(
         entity.imgId.toULong().toString(),

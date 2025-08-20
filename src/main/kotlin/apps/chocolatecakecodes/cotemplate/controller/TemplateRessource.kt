@@ -3,6 +3,7 @@ package apps.chocolatecakecodes.cotemplate.controller
 import apps.chocolatecakecodes.cotemplate.auth.CotemplateSecurityIdentity
 import apps.chocolatecakecodes.cotemplate.dto.*
 import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
+import apps.chocolatecakecodes.cotemplate.service.TemplateExportService
 import apps.chocolatecakecodes.cotemplate.service.TemplateItemService
 import apps.chocolatecakecodes.cotemplate.service.TemplateManagementService
 import apps.chocolatecakecodes.cotemplate.service.TemplateTeamService
@@ -16,6 +17,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody
 import org.jboss.resteasy.reactive.*
 import org.jboss.resteasy.reactive.multipart.FileUpload
+import java.io.InputStream
 import java.nio.file.Files
 
 @Path("api/templates")
@@ -23,6 +25,7 @@ internal class TemplateRessource (
     private val templateService: TemplateManagementService,
     private val teamService: TemplateTeamService,
     private val itemService: TemplateItemService,
+    private val exportService: TemplateExportService,
 ) {
 
     @GET
@@ -222,6 +225,32 @@ internal class TemplateRessource (
             val itemIds = images?.split(',')?.map(this::parseItemId)?.toSet() ?: emptySet()
             return itemService.render(name, itemIds)
         }
+    }
+
+    @GET
+    @Path("/{name}/export")
+    @Produces("application/zip")
+    @Cache(noStore = true)
+    @Authenticated
+    @Operation(
+        operationId = "exportTemplate",
+        summary = "exports a template with all its users and images"
+    )
+    fun exportTemplate(@RestPath name: String, @Context auth: SecurityIdentity): InputStream {
+        val identity = CotemplateSecurityIdentity.parse(auth)
+        return exportService.exportTemplate(identity, name)
+    }
+
+    @POST
+    @Path("/{name}/import")
+    @Consumes("application/zip")
+    @ResponseStatus(RestResponse.StatusCode.CREATED)
+    @Operation(
+        operationId = "importTemplate",
+        summary = "creates a new template with the given name and imports all users and images"
+    )
+    fun importTemplate(@RestPath name: String, @RequestBody data: InputStream): TemplateCreatedDto {
+        return exportService.importTemplate(name, data)
     }
 
     private fun parseItemId(idStr: String): ULong {

@@ -24,6 +24,7 @@ internal class TemplateManagementService(
     companion object {
 
         internal const val MAX_TEMPLATE_DIMENSION: Int = 8192
+        internal const val OWNER_USER_NAME = "owner"
         internal val NAME_REGEX = Regex("[a-zA-Z0-9_:]{4,128}")
 
         private val LOGGER = LoggerFactory.getLogger(TemplateManagementService::class.java)
@@ -65,7 +66,7 @@ internal class TemplateManagementService(
         val owner = UserEntity().apply {
             this.template = entity
             this.role = Role.TEMPLATE_OWNER
-            this.name = "owner"
+            this.name = OWNER_USER_NAME
             this.pass = ownerPassEnc
         }
 
@@ -127,7 +128,7 @@ internal class TemplateManagementService(
         itemService.invalidateCachedWithTemplate(tplName)
     }
 
-    fun checkTemplateAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String) {
+    internal fun checkTemplateAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String) {
         if(ident.isAnonymous)
             throw TemplateExceptions.forbidden(action)
         if(ident.template != tplName)
@@ -136,7 +137,7 @@ internal class TemplateManagementService(
             throw TemplateExceptions.forbidden(action)
     }
 
-    fun checkTeamAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String) {
+    internal fun checkTeamAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String) {
         if(ident.isAnonymous)
             throw TemplateExceptions.forbidden(action)
         if(ident.template != tplName)
@@ -145,7 +146,7 @@ internal class TemplateManagementService(
             throw TemplateExceptions.forbidden(action)
     }
 
-    fun checkItemAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String, itemOwner: UserEntity) {
+    internal fun checkItemAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String, itemOwner: UserEntity) {
         checkTeamAccess(action, ident, tplName)
         if(ident.role != Role.TEMPLATE_OWNER && ident.userId != itemOwner.id)
             throw TemplateExceptions.forbidden(action)
