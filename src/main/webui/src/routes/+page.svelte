@@ -5,7 +5,7 @@
     import ImportTemplate from "$lib/components/ImportTemplate.svelte";
 </script>
 
-<div class="flex p-4 w-screen h-screen justify-center items-center">
+<div class="flex p-4 justify-center items-center">
     <div class="w-xl max-w-5/6 h-max p-5 flex flex-col justify-center items-center border rounded-xs">
         <Tabs tabStyle="underline">
             <TabItem title="Open" open>
