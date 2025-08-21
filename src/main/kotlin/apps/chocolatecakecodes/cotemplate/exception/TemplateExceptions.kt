@@ -23,8 +23,8 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
     }
 
-    fun invalidName(): Exception {
-        val msg = "invalid name"
+    fun invalidName(msg: String? = null): Exception {
+        val msg = if(msg != null) "invalid name ($msg)" else "invalid name"
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
     }
 

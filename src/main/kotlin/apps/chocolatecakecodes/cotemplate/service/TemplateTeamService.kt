@@ -1,5 +1,6 @@
 package apps.chocolatecakecodes.cotemplate.service
 
+import apps.chocolatecakecodes.cotemplate.auth.AuthLoginProvider
 import apps.chocolatecakecodes.cotemplate.auth.CotemplateSecurityIdentity
 import apps.chocolatecakecodes.cotemplate.auth.Role
 import apps.chocolatecakecodes.cotemplate.auth.TeamCreatePolicy
@@ -30,6 +31,8 @@ internal class TemplateTeamService(
     fun createTeam(ident: CotemplateSecurityIdentity, tplName: String, teamName: String): TeamCreatedDto {
         if(!TEAM_REGEX.matches(teamName))
             throw TemplateExceptions.invalidName()
+        if(teamName == AuthLoginProvider.ADMIN_USER_NAME)
+            throw TemplateExceptions.invalidName("username may not be '${AuthLoginProvider.ADMIN_USER_NAME}'")
 
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)

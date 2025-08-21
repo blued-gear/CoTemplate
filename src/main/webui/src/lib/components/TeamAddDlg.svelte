@@ -1,9 +1,9 @@
 <script lang="ts">
-    import {Button, Input, Label, Modal, Toast} from "flowbite-svelte";
+    import {Button, Input, Label, Modal} from "flowbite-svelte";
     import type {TeamCreatedDto} from "$lib/js/api";
-    import Icon from "@iconify/svelte";
     import {API} from "$lib/js/constants";
     import {parseHttpException} from "$lib/js/api-ext/errors";
+    import MessageToast from "$lib/components/MessageToast.svelte";
 
     interface Props {
         open: boolean;
@@ -49,15 +49,12 @@
 
 <Modal bind:open={open} title="Create new Team" size="sm">
     <div class="mt-2 flex flex-col gap-2">
-        <Toast toastStatus={errMsg !== null} color="red" class="mb-2 max-w-full!">
-            {#snippet icon()}
-                <Icon class="h-5 w-5" icon="mdi:alert-circle-outline" />
-                <span class="sr-only">Warning icon</span>
+        <MessageToast show={errMsg !== null}>
+            {#snippet content()}
+                Unable to create team:
+                {errMsg}
             {/snippet}
-
-            Unable to create team:
-            {errMsg}
-        </Toast>
+        </MessageToast>
 
     {#if step === 0}
         <Label>

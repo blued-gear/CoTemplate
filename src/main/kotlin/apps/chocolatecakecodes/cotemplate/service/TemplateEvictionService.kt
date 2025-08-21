@@ -25,7 +25,7 @@ internal class TemplateEvictionService(
 
         TemplateEntity.findAllOverAge(maxAge).forEach { tpl ->
             LOGGER.info("evicting ${tpl.uniqueName}")
-            templateService.deleteTemplate(tpl.uniqueName)
+            templateService.deleteTemplateInternal(tpl.uniqueName)
         }
     }
 }

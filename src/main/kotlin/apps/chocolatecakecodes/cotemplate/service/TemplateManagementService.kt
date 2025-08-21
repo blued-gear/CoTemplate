@@ -8,6 +8,7 @@ import apps.chocolatecakecodes.cotemplate.db.TemplateItemEntity
 import apps.chocolatecakecodes.cotemplate.db.UserEntity
 import apps.chocolatecakecodes.cotemplate.dto.TemplateCreatedDto
 import apps.chocolatecakecodes.cotemplate.dto.TemplateDetailsDto
+import apps.chocolatecakecodes.cotemplate.dto.TemplatesDto
 import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.RollbackException
@@ -28,6 +29,17 @@ internal class TemplateManagementService(
         internal val NAME_REGEX = Regex("[a-zA-Z0-9_:]{4,128}")
 
         private val LOGGER = LoggerFactory.getLogger(TemplateManagementService::class.java)
+    }
+
+    fun listTemplates(ident: CotemplateSecurityIdentity): TemplatesDto {
+        if(ident.isAnonymous || ident.role != Role.ADMIN)
+            throw TemplateExceptions.forbidden("listing templates")
+
+        return TemplateEntity.findAll().list().associate {
+            Pair(it.uniqueName, templateEntityToDto(it))
+        }.let {
+            TemplatesDto(it)
+        }
     }
 
     fun createTemplate(name: String, width: Int, height: Int, teamCreatePolicy: TeamCreatePolicy): TemplateCreatedDto {
@@ -113,8 +125,15 @@ internal class TemplateManagementService(
         return templateEntityToDto(tpl)
     }
 
+    fun deleteTemplate(ident: CotemplateSecurityIdentity, tplName: String) {
+        if(ident.isAnonymous || ident.role != Role.ADMIN)
+            throw TemplateExceptions.forbidden("listing templates")
+
+        deleteTemplateInternal(tplName)
+    }
+
     @Transactional
-    fun deleteTemplate(tplName: String) {
+    internal fun deleteTemplateInternal(tplName: String) {
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)
 
@@ -131,23 +150,29 @@ internal class TemplateManagementService(
     internal fun checkTemplateAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String) {
         if(ident.isAnonymous)
             throw TemplateExceptions.forbidden(action)
+        if(ident.role == Role.ADMIN)
+            return
         if(ident.template != tplName)
             throw TemplateExceptions.forbidden(action)
-        if(ident.role != Role.ADMIN && ident.role != Role.TEMPLATE_OWNER)
+        if(ident.role != Role.TEMPLATE_OWNER)
             throw TemplateExceptions.forbidden(action)
     }
 
     internal fun checkTeamAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String) {
         if(ident.isAnonymous)
             throw TemplateExceptions.forbidden(action)
+        if(ident.role == Role.ADMIN)
+            return
         if(ident.template != tplName)
             throw TemplateExceptions.forbidden(action)
-        if(ident.role != Role.ADMIN && ident.role != Role.TEMPLATE_OWNER && ident.role != Role.TEMPLATE_TEAM)
+        if(ident.role != Role.TEMPLATE_OWNER && ident.role != Role.TEMPLATE_TEAM)
             throw TemplateExceptions.forbidden(action)
     }
 
     internal fun checkItemAccess(action: String, ident: CotemplateSecurityIdentity, tplName: String, itemOwner: UserEntity) {
         checkTeamAccess(action, ident, tplName)
+        if(ident.role == Role.ADMIN)
+            return
         if(ident.role != Role.TEMPLATE_OWNER && ident.userId != itemOwner.id)
             throw TemplateExceptions.forbidden(action)
     }

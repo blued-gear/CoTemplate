@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {Button, Drawer, Popover, Toast, Tooltip} from "flowbite-svelte";
+    import {Button, Drawer, Popover, Tooltip} from "flowbite-svelte";
     import {sineIn} from "svelte/easing";
     import type {PageData} from "./+page.ts";
     import {API, API_PATH, STORAGE_SELECTED_ITEMS} from "$lib/js/constants";
@@ -9,11 +9,11 @@
     import {logout} from "$lib/js/api-ext/auth";
     import type {ImgProperties} from "$lib/js/types";
     import ImgEditDlg from "$lib/components/ImgEditDlg.svelte";
-    import Icon from "@iconify/svelte";
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import TemplateSettings from "$lib/components/TemplateSettings.svelte";
     import {invalidateAll} from "$app/navigation";
     import TeamAddDlg from "$lib/components/TeamAddDlg.svelte";
+    import MessageToast from "$lib/components/MessageToast.svelte";
 
     const drawerTransitionRight = {
         x: 320,
@@ -354,11 +354,9 @@
     <ImgEditDlg bind:open={showImgEditDlg} create={false} initialData={editingImg} onSubmit={onEditedImg} />
     <TeamAddDlg bind:open={showTeamAddDlg} tplId={data.tplId} />
 
-    <Toast toastStatus={errMsg != null} color="red" class="absolute mb-4 ml-4 z-50">
-        {#snippet icon()}
-            <Icon class="h-5 w-5" icon="mdi:alert-circle-outline" />
-            <span class="sr-only">Warning icon</span>
+    <MessageToast show={errMsg != null}>
+        {#snippet content()}
+            {errMsg}
         {/snippet}
-        {errMsg}
-    </Toast>
+    </MessageToast>
 </div>

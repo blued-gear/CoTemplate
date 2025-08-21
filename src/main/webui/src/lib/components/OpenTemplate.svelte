@@ -4,6 +4,7 @@
     import {login} from "$lib/js/api-ext/auth";
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import {goto} from "$app/navigation";
+    import MessageToast from "$lib/components/MessageToast.svelte";
 
     let tplName = $state("");
     let tplUser = $state("");
@@ -51,10 +52,12 @@
 </script>
 
 <form onsubmit={submit}>
-    <Toast class="mb-2 max-w-full!" toastStatus={toastError}>
-        Unable to login:
-        {loginErrMsg}
-    </Toast>
+    <MessageToast show={toastError}>
+        {#snippet content()}
+            Unable to login:
+            {loginErrMsg}
+        {/snippet}
+    </MessageToast>
 
     <div class="flex flex-col">
         <div>

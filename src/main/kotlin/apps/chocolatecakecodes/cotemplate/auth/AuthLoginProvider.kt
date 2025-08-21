@@ -12,11 +12,21 @@ import io.smallrye.mutiny.Uni
 import io.vertx.ext.web.RoutingContext
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.context.control.ActivateRequestContext
+import org.eclipse.microprofile.config.inject.ConfigProperty
 
 @ApplicationScoped
 internal class AuthLoginProvider(
     private val passwordService: PasswordService,
+    @param:ConfigProperty(name = "cotemplate.auth.admin-password")
+    private val adminPassword: String,
 ) : IdentityProvider<UsernamePasswordAuthenticationRequest> {
+
+    companion object {
+
+        const val ADMIN_USER_NAME = "admin"
+    }
+
+    private val adminPasswordChars = adminPassword.toCharArray()
 
     override fun getRequestType(): Class<UsernamePasswordAuthenticationRequest> {
         return UsernamePasswordAuthenticationRequest::class.java
@@ -24,9 +34,10 @@ internal class AuthLoginProvider(
 
     override fun authenticate(req: UsernamePasswordAuthenticationRequest, ctx: AuthenticationRequestContext): Uni<SecurityIdentity> {
         return ctx.runBlocking {
+            tryAdminAuth(req)?.let { return@runBlocking it }
+
             val reqData = req.attributes["quarkus.http.routing.context"] as RoutingContext
             val templateName = reqData.request().formAttributes()["template"]
-
             val user = retrieveUser(req, templateName)
 
             return@runBlocking CotemplateSecurityIdentity(
@@ -36,6 +47,18 @@ internal class AuthLoginProvider(
                 templateName,
             )
         }
+    }
+
+    private fun tryAdminAuth(req: UsernamePasswordAuthenticationRequest): CotemplateSecurityIdentity? {
+        if(req.username != ADMIN_USER_NAME)
+            return null
+        if(adminPassword == "" || adminPassword == "_")
+            throw AuthenticationFailedException("admin account is disabled")
+
+        if(!req.password.password.contentEquals(adminPasswordChars))
+            throw AuthenticationFailedException("invalid password")
+
+        return CotemplateSecurityIdentity(0, ADMIN_USER_NAME, Role.ADMIN, ".")
     }
 
     @ActivateRequestContext

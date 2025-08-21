@@ -2,7 +2,7 @@ import {error, type LoadEvent} from "@sveltejs/kit";
 import type {TemplateDetailsDto} from "$lib/js/api";
 import {API, ERROR_PAGE_UNKNOWN_CODE} from "$lib/js/constants";
 import {parseHttpException} from "$lib/js/api-ext/errors";
-import {ROLE_GUEST, rolePower} from "$lib/js/api-ext/roles";
+import {ROLE_ADMIN, ROLE_GUEST, rolePower} from "$lib/js/api-ext/roles";
 
 export interface PageData {
     tplId: string;
@@ -33,7 +33,7 @@ export async function load({ params }: LoadEvent): Promise<PageData> {
     let role = ROLE_GUEST;
     try {
         const info = await API.getUserInfo();
-        if(!info.isGuest && info.info?.template === tplId) {
+        if(!info.isGuest && (info.info?.template === tplId || info.info?.role === ROLE_ADMIN)) {
             team = info.info.team;
             role = info.info.role;
         }

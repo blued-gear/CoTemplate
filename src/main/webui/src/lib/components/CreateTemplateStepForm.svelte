@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {Input, Label, Toast} from "flowbite-svelte";
+    import {Input, Label} from "flowbite-svelte";
     import TemplateSettings from "$lib/components/TemplateSettings.svelte";
     import {
         type TeamCreatePolicy,
@@ -9,7 +9,7 @@
     } from "$lib/js/api";
     import {API} from "$lib/js/constants";
     import {parseHttpException} from "$lib/js/api-ext/errors";
-    import Icon from "@iconify/svelte";
+    import MessageToast from "$lib/components/MessageToast.svelte";
 
     interface Props {
         onCreated: (resp: TemplateCreatedDto) => void;
@@ -45,15 +45,12 @@
 </script>
 
 <form onsubmit={submit}>
-    <Toast toastStatus={toastError} color="red" class="mb-2 max-w-full!">
-        {#snippet icon()}
-            <Icon class="h-5 w-5" icon="mdi:alert-circle-outline" />
-            <span class="sr-only">Warning icon</span>
+    <MessageToast show={toastError}>
+        {#snippet content()}
+            Unable to create template:
+            {apiErrMsg}
         {/snippet}
-
-        Unable to create template:
-        {apiErrMsg}
-    </Toast>
+    </MessageToast>
 
     <div class="flex flex-col">
         <div>

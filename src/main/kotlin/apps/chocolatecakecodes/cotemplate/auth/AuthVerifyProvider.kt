@@ -21,14 +21,23 @@ internal class AuthVerifyProvider : IdentityProvider<TrustedAuthenticationReques
     override fun authenticate(req: TrustedAuthenticationRequest, ctx: AuthenticationRequestContext): Uni<SecurityIdentity> {
         return ctx.runBlocking {
             val principal = TemplatePrincipal.parse(req.principal)
-            val user = retrieveUser(principal)
 
-            return@runBlocking CotemplateSecurityIdentity(
-                user.id!!,
-                user.name,
-                user.role,
-                principal.template,
-            )
+            if(principal.user == AuthLoginProvider.ADMIN_USER_NAME) {
+                return@runBlocking CotemplateSecurityIdentity(
+                    0,
+                    principal.user,
+                    Role.ADMIN,
+                    principal.template,
+                )
+            } else {
+                val user = retrieveUser(principal)
+                return@runBlocking CotemplateSecurityIdentity(
+                    user.id!!,
+                    user.name,
+                    user.role,
+                    principal.template,
+                )
+            }
         }
     }
 

@@ -1,10 +1,10 @@
 <script lang="ts">
     import type {TemplateCreatedDto} from "$lib/js/api";
-    import {Fileupload, Input, Label, Toast} from "flowbite-svelte";
-    import Icon from "@iconify/svelte";
+    import {Fileupload, Input, Label} from "flowbite-svelte";
     import {API} from "$lib/js/constants";
     import CreateTemplateStepInfo from "$lib/components/CreateTemplateStepInfo.svelte";
     import {parseHttpException} from "$lib/js/api-ext/errors";
+    import MessageToast from "$lib/components/MessageToast.svelte";
 
     let errMsg: string | null = $state(null);
     let tplName = $state("");
@@ -27,15 +27,12 @@
 
 <div>
     {#if createdTplInfo == null}
-        <Toast toastStatus={errMsg != null} color="red" class="mb-2 max-w-full!">
-            {#snippet icon()}
-                <Icon class="h-5 w-5" icon="mdi:alert-circle-outline" />
-                <span class="sr-only">Warning icon</span>
+        <MessageToast show={errMsg != null}>
+            {#snippet content()}
+                Unable to import template:
+                {errMsg}
             {/snippet}
-
-            Unable to import template:
-            {errMsg}
-        </Toast>
+        </MessageToast>
 
         <form class="flex flex-col gap-4" onsubmit={onImport}>
             <div>

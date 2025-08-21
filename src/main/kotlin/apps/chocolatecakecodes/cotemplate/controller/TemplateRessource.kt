@@ -29,6 +29,19 @@ internal class TemplateRessource (
 ) {
 
     @GET
+    @Path("/")
+    @Authenticated
+    @Operation(
+        operationId = "getTemplates",
+        summary = "returns a list of all templates",
+        description = "(may only be used by an admin)"
+    )
+    fun getTemplates(@Context auth: SecurityIdentity): TemplatesDto {
+        val identity = CotemplateSecurityIdentity.parse(auth)
+        return templateService.listTemplates(identity)
+    }
+
+    @GET
     @Path("/{name}")
     @PermitAll
     @Operation(
@@ -48,6 +61,20 @@ internal class TemplateRessource (
     )
     fun createTemplate(@RequestBody args: TemplateCreateDto): TemplateCreatedDto {
         return templateService.createTemplate(args.name, args.width, args.height, args.teamCreatePolicy)
+    }
+
+    @DELETE
+    @Path("/{name}")
+    @ResponseStatus(RestResponse.StatusCode.NO_CONTENT)
+    @Authenticated
+    @Operation(
+        operationId = "deleteTemplate",
+        summary = "deletes a template with all its associated resources",
+        description = "(may only be used by an admin)"
+    )
+    fun deleteTemplate(@RestPath name: String, @Context auth: SecurityIdentity) {
+        val identity = CotemplateSecurityIdentity.parse(auth)
+        return templateService.deleteTemplate(identity, name)
     }
 
     @PUT
