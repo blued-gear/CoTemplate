@@ -252,6 +252,16 @@
         await reload();
     }
 
+    async function onExport() {
+        const url = API_PATH + `/templates/${data.tplId}/export`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${data.tplInfo.name}.zip`
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
     async function onLogout() {
         const err = await logout();
         if(err != null) {
@@ -333,6 +343,10 @@
                 <TemplateSettings bind:sizeW={tplSettingsSizeW} bind:sizeH={tplSettingsSizeH} bind:teamCreatePolicy={tplSettingsTCP} />
                 <Button disabled={data.userPower < POWER_EDIT_TPL} onclick={onApplySettings}>Apply</Button>
             </div>
+
+            {#if data.userPower >= POWER_EDIT_TPL}
+            <Button onclick={onExport}>Export</Button>
+            {/if}
         </div>
     </Drawer>
 

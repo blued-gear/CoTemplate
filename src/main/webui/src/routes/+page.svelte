@@ -2,6 +2,7 @@
     import {TabItem, Tabs} from "flowbite-svelte";
     import OpenTemplate from "$lib/components/OpenTemplate.svelte";
     import CreateTemplate from "$lib/components/CreateTemplate.svelte";
+    import ImportTemplate from "$lib/components/ImportTemplate.svelte";
 </script>
 
 <div class="flex p-4 w-screen h-screen justify-center items-center">
@@ -12,6 +13,9 @@
             </TabItem>
             <TabItem title="Create">
                 <CreateTemplate />
+            </TabItem>
+            <TabItem title="Import">
+                <ImportTemplate />
             </TabItem>
         </Tabs>
     </div>
