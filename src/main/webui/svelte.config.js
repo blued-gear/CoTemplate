@@ -12,7 +12,8 @@ const config = {
             fallback: 'index.html'
         }),
         paths: {
-            relative: true
+            relative: true,
+            base: process.env["COTEMPLATE_UI_PATH"]
         }
 	}
 };

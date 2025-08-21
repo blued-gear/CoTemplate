@@ -26,8 +26,7 @@
     }
 
     function openTemplate() {
-        //TODO check if this works with app subpath
-        goto(`/template/${tplName}`);
+        goto(`./template/${tplName}`);
     }
 
     async function loginAndOpen() {

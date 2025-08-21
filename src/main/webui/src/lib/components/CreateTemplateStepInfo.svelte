@@ -23,8 +23,7 @@
                 console.log("unable to login after template creation", err);
         }
 
-        //TODO check if this works with app subpath
-        goto(`/template/${createdDto.uniqueName}`);
+        goto(`./template/${createdDto.uniqueName}`);
     }
 </script>
 

@@ -108,7 +108,7 @@
             {#each templates as tpl}
                 <div class="p-1 flex flex-row gap-2 border-b border-gray-800">
                     <IconButton icon="mdi:trash" onClick={async () => await onRmTemplate(tpl.id)}/>
-                    <a href={`../template/${tpl.id}`} class="underline text-blue-600">{tpl.name}</a>
+                    <a href={`./template/${tpl.id}`} class="underline text-blue-600">{tpl.name}</a>
                     <div>Created: {new Date(tpl.createdAt ?? 0).toLocaleString()}</div>
                     <div>Items: {tpl.templateCount}</div>
                 </div>

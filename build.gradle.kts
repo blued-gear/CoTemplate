@@ -12,6 +12,11 @@ plugins {
     idea
 }
 
+group = "apps.chocolatecakecodes.cotemplate"
+version = "0.1.0"
+
+val urlSubPath = "/cotemplate"
+
 idea {
     module {
         isDownloadJavadoc = true
@@ -55,8 +60,9 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")
 }
 
-group = "apps.chocolatecakecodes.cotemplate"
-version = "0.1.0"
+quarkus {
+    this.set("http.root-path", urlSubPath)
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -107,4 +113,9 @@ tasks.register<Exec>("buildUi") {
 
     workingDir = File(project.projectDir, "src/main/webui")
     commandLine("npm", "run", "build")
+}
+
+tasks.named("quarkusAppPartsBuild") {
+    dependsOn("genApiJs")
+    inputs.dir(project.projectDir.path + "/src/main/webui")
 }

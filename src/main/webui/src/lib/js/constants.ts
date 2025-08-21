@@ -1,12 +1,8 @@
 import {Configuration, DefaultApi} from "$lib/js/api";
 
 export const BASE_PATH = (() => {
-    if(location.hostname === 'localhost') {
-        return "/cotpl";
-    } else {
-        const subpathEnd = location.href.indexOf("/ui/");
-        return location.href.substring(0, subpathEnd);
-    }
+    const subpathEnd = location.href.indexOf("/ui/");
+    return location.href.substring(0, subpathEnd);
 })();
 export const API_PATH = BASE_PATH + "/api";
 
