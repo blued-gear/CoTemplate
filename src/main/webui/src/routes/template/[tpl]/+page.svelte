@@ -14,6 +14,7 @@
     import {invalidateAll} from "$app/navigation";
     import TeamAddDlg from "$lib/components/TeamAddDlg.svelte";
     import MessageToast from "$lib/components/MessageToast.svelte";
+    import favicon from "$lib/assets/favicon.svg";
 
     const drawerTransitionRight = {
         x: 320,
@@ -277,6 +278,11 @@
     }
     reload();
 </script>
+
+<svelte:head>
+    <link rel="icon" href={favicon} />
+    <title>{data.tplInfo.name} | CoTemplate</title>
+</svelte:head>
 
 <div>
     <div class="p-2 flex gap-3 shadow">
