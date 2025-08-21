@@ -2,13 +2,27 @@
     import type {TemplateCreatedDto} from "$lib/js/api";
     import {Button, Input, Label} from "flowbite-svelte";
     import {goto} from "$app/navigation";
+    import {login} from "$lib/js/api-ext/auth";
+    import {parseHttpException} from "$lib/js/api-ext/errors";
 
     interface Props {
         createdDto: TemplateCreatedDto;
     }
     const { createdDto }: Props = $props();
 
-    function onContinue() {
+    async function onContinue() {
+        try {
+            const err = await login(createdDto.uniqueName, createdDto.ownerUsername, createdDto.ownerPassword);
+            if(err != null)
+                console.log("unable to login after template creation", err);
+        } catch(e: any) {
+            const err = await parseHttpException(e);
+            if(err == null)
+                console.log("unable to login after template creation", e);
+            else
+                console.log("unable to login after template creation", err);
+        }
+
         //TODO check if this works with app subpath
         goto(`/template/${createdDto.uniqueName}`);
     }
