@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+        width="100mm"
+        height="100mm"
+        viewBox="0 0 100 100"
+        version="1.1"
+        id="svg1"
+        inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+        sodipodi:docname="icon.svg"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:cc="http://creativecommons.org/ns#">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2.486296"
+     inkscape:cx="53.493228"
+     inkscape:cy="185.21528"
+     inkscape:window-width="3440"
+     inkscape:window-height="1412"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       d="M 11.689321,5.4537647 V 48.565967 H 51.668689 V 31.610309 h -8.466665 v -9.201712 h 8.466665 V 5.4537647 Z"
+       style="fill:#ed1d26;stroke-width:0.16;stroke-opacity:0.996078"
+       id="path3" />
+    <g
+       id="g3"
+       transform="matrix(1.6,0,0,1.6,-28.133521,-33.021534)">
+      <rect
+         style="fill:#21b14c;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-opacity:0.996078"
+         id="rect2"
+         width="24.987455"
+         height="26.945505"
+         x="48.884193"
+         y="50" />
+      <rect
+         style="fill:#21b14c;fill-opacity:1;stroke:none;stroke-width:0.085742;stroke-opacity:0.996078"
+         id="rect3"
+         width="5.3943696"
+         height="5.7510824"
+         x="43.48983"
+         y="60.59721" />
+    </g>
+  </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+      <cc:Work
+         rdf:about="">
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

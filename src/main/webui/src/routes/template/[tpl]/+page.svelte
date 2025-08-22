@@ -14,7 +14,7 @@
     import {invalidateAll} from "$app/navigation";
     import TeamAddDlg from "$lib/components/TeamAddDlg.svelte";
     import MessageToast from "$lib/components/MessageToast.svelte";
-    import favicon from "$lib/assets/favicon.svg";
+    import favicon from "$lib/assets/favicon.png";
 
     const drawerTransitionRight = {
         x: 320,
