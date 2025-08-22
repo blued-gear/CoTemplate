@@ -1,4 +1,9 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URI
+import java.nio.file.Files
+import java.util.*
 
 plugins {
     kotlin("jvm") version "2.1.21"
@@ -92,6 +97,15 @@ tasks.withType<Test>().configureEach {
     this.environment("COTEMPLATE_IMG_STORAGE", "${project.projectDir}/tmp/serverImg-test")
 }
 
+tasks.named("quarkusAppPartsBuild") {
+    dependsOn("genApiJs")
+
+    fileTree(project.projectDir.path + "/src/main/webui/").exclude {
+        it.path.contains("node_modules/")
+            || it.path.contains(".svelte-kit/")
+    }.let { inputs.files(it) }
+}
+
 tasks.register<GenerateTask>("genApiJs") {
     group = "ui"
     dependsOn("generateOpenApiSpec")
@@ -115,7 +129,57 @@ tasks.register<Exec>("buildUi") {
     commandLine("npm", "run", "build")
 }
 
-tasks.named("quarkusAppPartsBuild") {
-    dependsOn("genApiJs")
-    inputs.dir(project.projectDir.path + "/src/main/webui")
+tasks.register<Tar>("createTar") {
+    dependsOn("assemble")
+
+    from(fileTree(project.layout.buildDirectory.dir("quarkus-app")))
+    destinationDirectory = project.layout.buildDirectory.dir("dist")
+    archiveBaseName = "cotemplate"
+    compression = Compression.GZIP
+}
+
+tasks.register("uploadPackage") {
+    group = "publish"
+    dependsOn("createTar")
+
+    doLast {
+        val glHost = System.getenv("GITLAB_HOST")
+        if(glHost.isNullOrEmpty())
+            throw IllegalArgumentException("missing GITLAB_HOST")
+        val glProject = System.getenv("GITLAB_PROJECT_ID")
+        if(glProject.isNullOrEmpty())
+            throw IllegalArgumentException("missing GITLAB_PROJECT_ID")
+        val glTokenName = System.getenv("GITLAB_DEPLOY_TOKEN_NAME")
+        if(glTokenName.isNullOrEmpty())
+            throw IllegalArgumentException("missing GITLAB_DEPLOY_TOKEN_NAME")
+        val glTokenKey = System.getenv("GITLAB_DEPLOY_TOKEN_KEY")
+        if(glTokenKey.isNullOrEmpty())
+            throw IllegalArgumentException("missing GITLAB_DEPLOY_TOKEN_KEY")
+
+        val distFile: File = tasks.named("createTar").get().outputs.files.singleFile
+        val glUrl = "https://$glHost/api/v4/projects/$glProject/packages/generic/${project.name}/${project.version}/${distFile.name}"
+        val glAuth = "$glTokenName:$glTokenKey"
+
+        val http = URI(glUrl).toURL().openConnection() as HttpURLConnection
+        http.apply {
+            doOutput = true
+            doInput = true
+            instanceFollowRedirects = true
+            requestMethod = "PUT"
+            setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString(glAuth.encodeToByteArray()))
+        }
+
+        Files.newInputStream(distFile.toPath()).use { inp ->
+            inp.transferTo(http.outputStream)
+        }
+        http.outputStream.close()
+
+        val respStatus = http.responseCode
+        if(respStatus < 200 || respStatus > 299) {
+            val errStr = http.errorStream.bufferedReader().use { it.readText() }
+            throw IOException("Unable to upload package; respStatus = $respStatus\n$errStr")
+        } else {
+            logger.info("uploaded package ${distFile.name}")
+        }
+    }
 }
