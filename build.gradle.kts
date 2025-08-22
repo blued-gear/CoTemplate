@@ -53,8 +53,9 @@ dependencies {
     implementation("io.quarkus:quarkus-security")
     implementation("io.quarkus:quarkus-cache")
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.6.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
+    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.6.2")
 
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.3")
 
@@ -62,7 +63,7 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.0")
 }
 
 quarkus {
