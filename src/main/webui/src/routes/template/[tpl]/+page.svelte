@@ -314,7 +314,7 @@
     </div>
 
     <div>
-        <img class="w-full h-full contain-content" src="{imgUrl}" alt="template" />
+        <img class="w-full h-full contain-content bg-white border" style="image-rendering: crisp-edges;" src="{imgUrl}" alt="template" />
     </div>
 
     <Drawer bind:open={imgDrawerOpen} class="overflow-y-auto">
