@@ -32,8 +32,8 @@
     let errMsg: string | null = $state(null);
     let imgUrl = $state("");
     let timeUntilDeletion = $state("");
-    let imgDrawerHidden = $state(true);
-    let settingsDrawerHidden = $state(true);
+    let imgDrawerOpen = $state(false);
+    let settingsDrawerOpen = $state(false);
     let images: ImageItem[] = $state([]);
     let showImgEditDlg = $state(false);
     let showImgAddDlg = $state(false);
@@ -290,7 +290,7 @@
 
 <div>
     <div class="p-2 flex gap-3 shadow">
-        <IconButton icon="mdi:image-multiple-outline" onClick={() => imgDrawerHidden = false} />
+        <IconButton icon="mdi:image-multiple-outline" onClick={() => imgDrawerOpen = true} />
 
         <div class="flex-1 flex justify-center items-center gap-1">
             <span>{data.tplInfo.name}</span>
@@ -310,14 +310,14 @@
         </div>
         {/if}
 
-        <IconButton icon="mdi:cog" onClick={() => settingsDrawerHidden = false} />
+        <IconButton icon="mdi:cog" onClick={() => settingsDrawerOpen = true} />
     </div>
 
     <div>
         <img class="w-full h-full contain-content" src="{imgUrl}" alt="template" />
     </div>
 
-    <Drawer bind:hidden={imgDrawerHidden} class="overflow-y-auto">
+    <Drawer bind:open={imgDrawerOpen} class="overflow-y-auto">
         {#if data.userRole !== ROLE_GUEST}
         <Button class="w-full" onclick={() => showImgAddDlg = true}>Add Image</Button>
         {/if}
@@ -343,7 +343,7 @@
         {/each}
     </Drawer>
 
-    <Drawer placement="right" transitionParams={drawerTransitionRight} bind:hidden={settingsDrawerHidden}>
+    <Drawer placement="right" transitionParams={drawerTransitionRight} bind:open={settingsDrawerOpen}>
         <div class="flex flex-col gap-6">
             <div class="text-sm">
                 CoTemplate created at {new Date(data.tplInfo.createdAt ?? 0).toLocaleString()}
