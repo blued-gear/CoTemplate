@@ -135,6 +135,10 @@
         }
     }
 
+    function copyImgUrl() {
+        navigator.clipboard.writeText(computeImgUrl());
+    }
+
     async function onAddImg(img: ImgProperties) {
         try {
             await API.addTemplateItem(data.tplId, img.description, img.imgData!, img.x, img.y, img.z);
@@ -290,7 +294,12 @@
 
         <div class="flex-1 flex justify-center items-center gap-1">
             <span>{data.tplInfo.name}</span>
+
             <IconButton small icon="mdi:reload" classO="h-fit" onClick={reload} />
+            <Tooltip>Reload template image</Tooltip>
+
+            <IconButton small icon="mdi:clipboard-outline" classO="h-fit" onClick={copyImgUrl} />
+            <Tooltip>Copy template image URL</Tooltip>
         </div>
 
         {#if data.userRole !== ROLE_GUEST}
