@@ -328,7 +328,10 @@
                     onclick={() => toggleSelectedImage(img)}
             >
                 <div class="flex flex-row justify-between">
-                    <div>{img.team}</div>
+                    <div>
+                        <span>{img.team}</span>
+                        <span class="mb-2 text-sm">({img.x}, {img.y}, {img.z})</span>
+                    </div>
                     {#if img.team === data.teamName || data.userPower >= POWER_EDIT_TPL}
                         <div class="flex flex-row gap-2">
                             <IconButton icon="mdi:pencil" stopClickPropagation onClick={() => editImg(img)}/>
