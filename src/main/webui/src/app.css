@@ -36,4 +36,13 @@
     input[type="search"]::-webkit-search-cancel-button {
         display: none;
     }
+
+    a {
+        @apply underline;
+        @apply text-blue-600;
+    }
+    a:visited {
+        @apply text-purple-700;
+    }
+
 }
