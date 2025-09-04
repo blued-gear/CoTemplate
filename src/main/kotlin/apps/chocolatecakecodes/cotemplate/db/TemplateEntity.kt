@@ -1,11 +1,13 @@
 package apps.chocolatecakecodes.cotemplate.db
 
 import apps.chocolatecakecodes.cotemplate.auth.TeamCreatePolicy
+import apps.chocolatecakecodes.cotemplate.service.TemplateManagementService
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
 import jakarta.persistence.Entity
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import org.hibernate.validator.constraints.Length
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
@@ -20,10 +22,12 @@ import java.util.*
 internal class TemplateEntity() : PanacheEntity() {
 
     lateinit var creationDate: Date
+    @Length(max = TemplateManagementService.NAME_MAX_LENGTH)
     lateinit var name: String
     var width: Int = 0
     var height: Int = 0
     lateinit var teamCreatePolicy: TeamCreatePolicy
+    @Length(max = TemplateManagementService.NAME_MAX_LENGTH + 16)
     lateinit var uniqueName: String
 
     constructor(name: String, width: Int, height: Int, teamCreatePolicy: TeamCreatePolicy) : this() {

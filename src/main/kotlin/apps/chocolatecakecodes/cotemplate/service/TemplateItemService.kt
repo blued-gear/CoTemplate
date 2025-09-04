@@ -34,6 +34,8 @@ internal class TemplateItemService(
 
     companion object {
 
+        internal const val DESCRIPTION_MAX_LEN = 1024
+
         private val LOGGER = LoggerFactory.getLogger(TemplateItemService::class.java)
     }
 
@@ -66,6 +68,8 @@ internal class TemplateItemService(
 
     internal fun addItemInternal(tpl: TemplateEntity, user: UserEntity, desc: String, x: Int, y: Int, z: Int, img: ByteArray): TemplateItemEntity {
         val (w, h) = getImageDimensions(img)
+        validateImgDimensions(w, h)
+
         val entity = addItemEntity(tpl, user, desc, x, y, z, w, h)
 
         try {
@@ -133,6 +137,8 @@ internal class TemplateItemService(
         mngService.checkItemAccess("modifying items", ident, tplName, item.owner)
 
         getImageDimensions(img).let { (w, h) ->
+            validateImgDimensions(w, h)
+
             item.width = w
             item.height = h
         }
@@ -276,5 +282,10 @@ internal class TemplateItemService(
             throw TemplateExceptions.invalidImage("unable to decode image", e)
         }
         return Pair(parsedImg.width, parsedImg.height)
+    }
+
+    private fun validateImgDimensions(w: Int, h: Int) {
+        if(w < 1 || h < 1 || w > TemplateManagementService.MAX_TEMPLATE_DIMENSION || h > TemplateManagementService.MAX_TEMPLATE_DIMENSION)
+            throw TemplateExceptions.invalidImageSize()
     }
 }

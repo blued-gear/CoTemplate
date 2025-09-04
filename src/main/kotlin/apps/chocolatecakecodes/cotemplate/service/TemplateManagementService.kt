@@ -26,7 +26,9 @@ internal class TemplateManagementService(
 
         internal const val MAX_TEMPLATE_DIMENSION: Int = 8192
         internal const val OWNER_USER_NAME = "owner"
-        internal val NAME_REGEX = Regex("[a-zA-Z0-9_:]{4,128}")
+        internal const val NAME_MIN_LENGTH = 4
+        internal const val NAME_MAX_LENGTH = 128
+        internal val NAME_REGEX = Regex("[a-zA-Z0-9_:]{$NAME_MIN_LENGTH,$NAME_MAX_LENGTH}")
 
         private val LOGGER = LoggerFactory.getLogger(TemplateManagementService::class.java)
     }

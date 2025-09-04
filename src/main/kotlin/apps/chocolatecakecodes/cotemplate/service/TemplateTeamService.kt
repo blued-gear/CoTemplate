@@ -23,7 +23,9 @@ internal class TemplateTeamService(
 
     companion object {
 
-        internal val TEAM_REGEX = Regex("[a-zA-Z0-9_:]{1,128}")
+        internal const val NAME_MIN_LENGTH = 1
+        internal const val NAME_MAX_LENGTH = 128
+        internal val TEAM_REGEX = Regex("[a-zA-Z0-9_:]{$NAME_MIN_LENGTH,$NAME_MAX_LENGTH}")
 
         private val LOGGER = LoggerFactory.getLogger(TemplateTeamService::class.java)
     }

@@ -1,8 +1,10 @@
 package apps.chocolatecakecodes.cotemplate.db
 
+import apps.chocolatecakecodes.cotemplate.service.TemplateItemService
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
 import jakarta.persistence.*
+import org.hibernate.validator.constraints.Length
 import java.security.SecureRandom
 
 @Entity
@@ -16,6 +18,7 @@ internal class TemplateItemEntity() : PanacheEntity() {
     lateinit var template: TemplateEntity
     @ManyToOne
     lateinit var owner: UserEntity
+    @Length(max = TemplateItemService.DESCRIPTION_MAX_LEN)
     lateinit var description: String
     var x: Int = 0
     var y: Int = 0

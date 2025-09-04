@@ -10,11 +10,13 @@ import apps.chocolatecakecodes.cotemplate.service.TemplateTeamService
 import io.quarkus.security.Authenticated
 import io.quarkus.security.identity.SecurityIdentity
 import jakarta.annotation.security.PermitAll
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.openapi.annotations.Operation
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody
+import org.hibernate.validator.constraints.Length
 import org.jboss.resteasy.reactive.*
 import org.jboss.resteasy.reactive.multipart.FileUpload
 import java.io.InputStream
@@ -169,7 +171,7 @@ internal class TemplateRessource (
     )
     fun addTemplateItem(
         @RestPath name: String,
-        @RestForm("description") desc: String,
+        @RestForm("description") @Length(max = TemplateItemService.DESCRIPTION_MAX_LEN) desc: String,
         @RestForm("x") x: Int,
         @RestForm("y") y: Int,
         @RestForm("z") z: Int,
@@ -190,7 +192,7 @@ internal class TemplateRessource (
     fun updateTemplateItemDetails(
         @RestPath name: String,
         @RestPath("id") idStr: String,
-        @RequestBody args: TemplateItemUpdateDto,
+        @RequestBody @Valid args: TemplateItemUpdateDto,
         @Context auth: SecurityIdentity,
     ): TemplateItemDto {
         val identity = CotemplateSecurityIdentity.parse(auth)

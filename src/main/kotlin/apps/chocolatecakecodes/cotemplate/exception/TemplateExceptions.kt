@@ -48,6 +48,11 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, cause, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
     }
 
+    fun invalidImageSize(): Exception {
+        val msg = "image is too big or has invalid size"
+        return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
+    }
+
     fun invalidParam(message: String): Exception {
         return WebApplicationException(message, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), message))
     }

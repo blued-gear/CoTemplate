@@ -1,8 +1,10 @@
 package apps.chocolatecakecodes.cotemplate.db
 
+import apps.chocolatecakecodes.cotemplate.service.TemplateTeamService
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheCompanion
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntity
 import jakarta.persistence.*
+import org.hibernate.validator.constraints.Length
 
 @Entity
 @Table(
@@ -12,6 +14,7 @@ internal class UserEntity : PanacheEntity() {
 
     @ManyToOne(fetch = FetchType.LAZY)
     lateinit var template: TemplateEntity
+    @Length(max = TemplateTeamService.NAME_MAX_LENGTH)
     lateinit var name: String
     lateinit var pass: String
     lateinit var role: String

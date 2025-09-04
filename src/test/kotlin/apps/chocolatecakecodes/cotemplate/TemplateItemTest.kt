@@ -134,6 +134,37 @@ internal class TemplateItemTest {
     }
 
     @Test
+    fun itemDescriptionMaxLength() {
+        val tpl = createTemplate()
+        val auth = login(tpl)
+
+        uploadItem(auth, tpl.uniqueName, "a".repeat(1024), 1, 1, 1, IMG1)
+
+        return Given {
+            this.cookie(auth)
+            this.contentType(ContentType.MULTIPART)
+            this.multiPart("description", "a".repeat(1025))
+            this.multiPart("x", "1")
+            this.multiPart("y", "1")
+            this.multiPart("z", "1")
+
+            TemplateItemTest::class.java.getResourceAsStream(IMG1).use {
+                it.readAllBytes()
+            }.let {
+                this.multiPart("image", "image.png", it)
+            }
+        } When {
+            this.post("/api/templates/$tpl/items")
+        } Then {
+            this.statusCode(HttpStatus.SC_BAD_REQUEST)
+        } Extract {
+            this.body().asString()
+        } Let {
+            it shouldBe "{\"title\":\"Constraint Violation\",\"status\":400,\"violations\":[{\"field\":\"addTemplateItem.desc\",\"message\":\"Länge muss zwischen 0 und 1024 sein\"}]}"
+        }
+    }
+
+    @Test
     fun getItemImage() {
         val tpl = createTemplate()
         val auth = login(tpl)
@@ -282,6 +313,38 @@ internal class TemplateItemTest {
             this.body().`as`(TemplateItemDto::class.java)
         } Let { resp ->
             resp shouldBe item.copy(description = "desc")
+        }
+    }
+
+    @Test
+    fun updateDescriptionMaxLen() {
+        val tpl = createTemplate()
+        val auth = login(tpl)
+
+        val item = uploadItem(auth, tpl.uniqueName, "i 2", 0, 0, 0, IMG2)
+
+        Given {
+            this.cookie(auth)
+            this.contentType(ContentType.JSON)
+            this.body(TemplateItemUpdateDto(description = "a".repeat(1025)))
+        } When {
+            this.put("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
+        } Then {
+            this.statusCode(HttpStatus.SC_BAD_REQUEST)
+        } Extract {
+            this.body().asString()
+        } Let { resp ->
+            resp shouldBe "{\"title\":\"Constraint Violation\",\"status\":400,\"violations\":[{\"field\":\"updateTemplateItemDetails.args.description\",\"message\":\"Länge muss zwischen 0 und 1024 sein\"}]}"
+        }
+
+        When {
+            this.get("/api/templates/${tpl.uniqueName}/items/${item.id}/details")
+        } Then {
+            this.statusCode(HttpStatus.SC_OK)
+        } Extract {
+            this.body().`as`(TemplateItemDto::class.java)
+        } Let { resp ->
+            resp shouldBe item
         }
     }
 
