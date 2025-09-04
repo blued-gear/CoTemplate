@@ -370,7 +370,7 @@
 
     <ImgEditDlg bind:open={showImgAddDlg} create onSubmit={onAddImg} />
     <ImgEditDlg bind:open={showImgEditDlg} create={false} initialData={editingImg} onSubmit={onEditedImg} />
-    <TeamAddDlg bind:open={showTeamAddDlg} tplId={data.tplId} />
+    <TeamAddDlg bind:open={showTeamAddDlg} tplId={data.tplId} userRole={data.userRole} />
 
     <MessageToast show={errMsg != null}>
         {#snippet content()}

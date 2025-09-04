@@ -4,12 +4,15 @@
     import {API} from "$lib/js/constants";
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import MessageToast from "$lib/components/MessageToast.svelte";
+    import {ROLE_GUEST} from "$lib/js/api-ext/roles";
+    import {login} from "$lib/js/api-ext/auth";
 
     interface Props {
         open: boolean;
         tplId: string;
+        userRole: string;
     }
-    let { open = $bindable(), tplId }: Props = $props();
+    let { open = $bindable(), tplId, userRole }: Props = $props();
 
     let step = $state(0);
     let errMsg: string | null = $state(null);
@@ -38,10 +41,38 @@
             const err = await parseHttpException(e);
             if(err != null) {
                 console.error("unable to create team", err);
-                errMsg = err.message;
+                errMsg = `unable to create team: ${err.message}`;
             } else {
                 console.error("unable to create team", e);
-                errMsg = "unknown error";
+                errMsg = "unable to create team: unknown error";
+            }
+        }
+    }
+
+    async function onFinish() {
+        errMsg = null;
+
+        if(userRole !== ROLE_GUEST) {
+            open = false;
+        } else {
+            // if guest then login as created team
+            try {
+                const err = await login(tplId, newTeamInfo!.name, newTeamInfo!.password);
+                if (err == null) {
+                    location.reload();
+                } else {
+                    console.error("unable to login as created team", err);
+                    errMsg = `unable to login: ${err?.message ?? "unknown error"}`;
+                }
+            } catch (e) {
+                const err = await parseHttpException(e);
+                if (err != null) {
+                    console.error("unable to login as created team", err);
+                    errMsg = `unable to login: ${err.message}`;
+                } else {
+                    console.error("unable to login as created team", e);
+                    errMsg = "unable to login: unknown error";
+                }
             }
         }
     }
@@ -51,7 +82,6 @@
     <div class="mt-2 flex flex-col gap-2">
         <MessageToast show={errMsg !== null}>
             {#snippet content()}
-                Unable to create team:
                 {errMsg}
             {/snippet}
         </MessageToast>
@@ -70,6 +100,12 @@
             Please store the following info somewhere save as it is needed for the login.
             <br/>
             <span class="font-bold">The credentials can not be reset.</span>
+            <br/>
+
+            Other members of your team can use these credentials on the
+            <a href="../">login page</a>
+            with the Template ID
+            <span class="mx-1 italic">{tplId}</span> .
         </div>
 
         <div class="mt-2">
@@ -82,6 +118,8 @@
                 <Input type="text" readonly value={newTeamInfo?.password} />
             </Label>
         </div>
+
+        <Button onclick={onFinish}>Ok</Button>
     {:else}
         ERROR IN PAGE LOGIC
     {/if}
