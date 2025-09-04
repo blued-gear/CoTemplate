@@ -13,7 +13,6 @@ import com.sksamuel.scrimage.nio.PngWriter
 import io.quarkus.cache.Cache
 import io.quarkus.cache.CacheName
 import io.quarkus.cache.CacheResult
-import io.quarkus.cache.CompositeCacheKey
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
@@ -194,7 +193,7 @@ internal class TemplateItemService(
         if(items.size != imgs.size)
             throw TemplateExceptions.itemsNotFound(tplName, items)
 
-        return render(tpl, imgs)
+        return render(RenderArgs(tpl, imgs))
     }
 
     fun renderAll(tplName: String): ByteArray {
@@ -202,18 +201,18 @@ internal class TemplateItemService(
             ?: throw TemplateExceptions.templateNotFound(tplName)
         val imgs = TemplateItemEntity.findAllByTemplate(tpl)
 
-        return render(tpl, imgs)
+        return render(RenderArgs(tpl, imgs))
     }
 
     @CacheResult(cacheName = "template-rendered")
-    protected fun render(tpl: TemplateEntity, imgs: List<TemplateItemEntity>): ByteArray {
-        val canvas = MutableImage(BufferedImage(tpl.width, tpl.height, BufferedImage.TYPE_INT_ARGB))
-        imgs.sortedBy { it.z }.forEach { item ->
+    protected fun render(args: RenderArgs): ByteArray {
+        val canvas = MutableImage(BufferedImage(args.width, args.height, BufferedImage.TYPE_INT_ARGB))
+        args.imgs.sortedBy { it.z }.forEach { item ->
             val img = try {
-                ImmutableImage.loader().fromPath(imgStoragePath(item))
+                ImmutableImage.loader().fromPath(imgStoragePath(args.tplUniqueName, item.imgId))
                     .toNewBufferedImage(BufferedImage.TYPE_INT_ARGB)
             } catch(e: Exception) {
-                LOGGER.error("unable to read image for item ${tpl.uniqueName}::${item.imgId}", e)
+                LOGGER.error("unable to read image for item ${args.tplUniqueName}::${item.imgId}", e)
                 throw e
             }
             canvas.overlayInPlace(img, item.x, item.y)
@@ -246,23 +245,23 @@ internal class TemplateItemService(
     @Suppress("UNCHECKED_CAST")
     internal fun invalidateCachedWithItem(tpl: String, item: ULong) {
         renderCache.invalidateIf {
-            val components = (it as CompositeCacheKey).keyElements
-            assert(components.size == 2)
-            if(components[0] != tpl) return@invalidateIf false
-            val items = components[1] as Set<ULong>
-            return@invalidateIf items.contains(item)
+            val args = it as RenderArgs
+            if(args.tplUniqueName != tpl) return@invalidateIf false
+            val items = args.imgs.map { it.imgId }
+            return@invalidateIf items.contains(item.toLong())
         }.await().indefinitely()
     }
 
     internal fun invalidateCachedWithTemplate(tpl: String) {
         renderCache.invalidateIf {
-            val components = (it as CompositeCacheKey).keyElements
-            assert(components.size == 2)
-            return@invalidateIf components[0] == tpl
+            val args = it as RenderArgs
+            return@invalidateIf args.tplUniqueName == tpl
         }.await().indefinitely()
     }
 
-    internal fun imgStoragePath(item: TemplateItemEntity): Path = imgDir.resolve("${item.template.uniqueName}/${item.imgId.toULong()}")
+    internal fun imgStoragePath(item: TemplateItemEntity): Path = imgStoragePath(item.template.uniqueName, item.imgId)
+
+    private fun imgStoragePath(tplName: String, imgId: Long) = imgDir.resolve("$tplName/${imgId.toULong()}")
 
     private fun itemEntityToDto(entity: TemplateItemEntity) = TemplateItemDto(
         entity.imgId.toULong().toString(),
@@ -287,5 +286,33 @@ internal class TemplateItemService(
     private fun validateImgDimensions(w: Int, h: Int) {
         if(w < 1 || h < 1 || w > TemplateManagementService.MAX_TEMPLATE_DIMENSION || h > TemplateManagementService.MAX_TEMPLATE_DIMENSION)
             throw TemplateExceptions.invalidImageSize()
+    }
+
+    protected data class RenderArgs(
+        val tplUniqueName: String,
+        val width: Int,
+        val height: Int,
+        val imgs: List<RenderImg>,
+    ) {
+        constructor(tpl: TemplateEntity, imgs: List<TemplateItemEntity>) : this(
+            tpl.uniqueName,
+            tpl.width,
+            tpl.height,
+            imgs.map { RenderImg(it) },
+        )
+    }
+
+    protected data class RenderImg(
+        val imgId: Long = 0,
+        val x: Int = 0,
+        val y: Int = 0,
+        val z: Int = 0,
+    ) {
+        constructor(entity: TemplateItemEntity) : this(
+            entity.imgId,
+            entity.x,
+            entity.y,
+            entity.z,
+        )
     }
 }
