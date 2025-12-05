@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -6,19 +7,19 @@ import java.nio.file.Files
 import java.util.*
 
 plugins {
-    kotlin("jvm") version "2.1.21"
-    kotlin("plugin.allopen") version "2.1.21"
-    kotlin("plugin.serialization") version "2.1.21"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.allopen") version "2.2.21"
+    kotlin("plugin.serialization") version "2.2.21"
     id("io.quarkus")
 
     id("io.smallrye.openapi") version "4.1.1"
-    id("org.openapi.generator") version "7.14.0"
+    id("org.openapi.generator") version "7.17.0"
 
     idea
 }
 
 group = "apps.chocolatecakecodes.cotemplate"
-version = "1.0.0"
+version = "1.1.0-b"
 
 val urlSubPath = "/cotemplate"
 
@@ -55,15 +56,15 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.6.2")
+    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.7.0")
 
-    implementation("com.sksamuel.scrimage:scrimage-core:4.3.3")
+    implementation("com.sksamuel.scrimage:scrimage-core:4.3.5")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
-    testImplementation("io.kotest:kotest-assertions-core:6.0.0")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.7")
 }
 
 quarkus {
@@ -71,8 +72,15 @@ quarkus {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_24
+        javaParameters = true
+    }
 }
 
 tasks.withType<Test> {
@@ -85,13 +93,6 @@ allOpen {
     annotation("jakarta.inject.Singleton")
     annotation("jakarta.persistence.Entity")
     annotation("io.quarkus.test.junit.QuarkusTest")
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-        javaParameters = true
-    }
 }
 
 tasks.withType<Test>().configureEach {

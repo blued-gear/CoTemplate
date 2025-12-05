@@ -17,7 +17,7 @@ RUN curl \
     tar -C /app -xf app.tgz
 
 
-FROM docker.io/library/eclipse-temurin:21-jdk-alpine
+FROM docker.io/library/eclipse-temurin:25-jdk-alpine
 
 COPY --from=PULL --chown=1001:1001 /app/ /app
 
