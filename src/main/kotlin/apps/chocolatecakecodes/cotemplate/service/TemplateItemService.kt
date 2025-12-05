@@ -29,6 +29,8 @@ internal class TemplateItemService(
     private val mngService: TemplateManagementService,
     @ConfigProperty(name = "cotemplate.image-storage")
     imgDirPath: String,
+    @param:ConfigProperty(name = "cotemplate.template-max-size")
+    private val templateMaxSize: Long,
 ) {
 
     companion object {
@@ -284,7 +286,7 @@ internal class TemplateItemService(
     }
 
     private fun validateImgDimensions(w: Int, h: Int) {
-        if(w < 1 || h < 1 || w > TemplateManagementService.MAX_TEMPLATE_DIMENSION || h > TemplateManagementService.MAX_TEMPLATE_DIMENSION)
+        if(w < 1 || h < 1 || w > templateMaxSize || h > templateMaxSize)
             throw TemplateExceptions.invalidImageSize()
     }
 

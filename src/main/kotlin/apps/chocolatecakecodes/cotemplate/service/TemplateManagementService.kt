@@ -13,6 +13,7 @@ import apps.chocolatecakecodes.cotemplate.exception.TemplateExceptions
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.RollbackException
 import jakarta.transaction.Transactional
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.hibernate.exception.ConstraintViolationException
 import org.slf4j.LoggerFactory
 
@@ -20,11 +21,12 @@ import org.slf4j.LoggerFactory
 internal class TemplateManagementService(
     private val itemService: TemplateItemService,
     private val passwordService: PasswordService,
+    @param:ConfigProperty(name = "cotemplate.template-max-size")
+    private val templateMaxSize: Long,
 ) {
 
     companion object {
 
-        internal const val MAX_TEMPLATE_DIMENSION: Int = 8192
         internal const val OWNER_USER_NAME = "owner"
         internal const val NAME_MIN_LENGTH = 4
         internal const val NAME_MAX_LENGTH = 128
@@ -45,8 +47,8 @@ internal class TemplateManagementService(
     }
 
     fun createTemplate(name: String, width: Int, height: Int, teamCreatePolicy: TeamCreatePolicy): TemplateCreatedDto {
-        if(width <= 0 || height <= 0 || width > MAX_TEMPLATE_DIMENSION || height > MAX_TEMPLATE_DIMENSION)
-            throw TemplateExceptions.invalidDimensions()
+        if(width <= 0 || height <= 0 || width > templateMaxSize || height > templateMaxSize)
+            throw TemplateExceptions.invalidDimensions(templateMaxSize)
 
         if(!NAME_REGEX.matches(name))
             throw TemplateExceptions.invalidName()
@@ -99,8 +101,8 @@ internal class TemplateManagementService(
     @Transactional
     fun updateTemplateSize(ident: CotemplateSecurityIdentity, tplName: String, width: Int, height: Int): TemplateDetailsDto {
         checkTemplateAccess("modifying template settings", ident, tplName)
-        if(width <= 0 || height <= 0 || width > MAX_TEMPLATE_DIMENSION || height > MAX_TEMPLATE_DIMENSION)
-            throw TemplateExceptions.invalidDimensions()
+        if(width <= 0 || height <= 0 || width > templateMaxSize || height > templateMaxSize)
+            throw TemplateExceptions.invalidDimensions(templateMaxSize)
 
         val tpl = TemplateEntity.findByUniqueName(tplName)
             ?: throw TemplateExceptions.templateNotFound(tplName)

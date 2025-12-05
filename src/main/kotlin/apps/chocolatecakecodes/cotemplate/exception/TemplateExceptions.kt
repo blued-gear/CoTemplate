@@ -1,6 +1,5 @@
 package apps.chocolatecakecodes.cotemplate.exception
 
-import apps.chocolatecakecodes.cotemplate.service.TemplateManagementService
 import io.netty.handler.codec.http.HttpResponseStatus
 import jakarta.ws.rs.WebApplicationException
 import jakarta.ws.rs.core.MediaType
@@ -18,8 +17,8 @@ internal object TemplateExceptions {
         return WebApplicationException(msg, e, buildResp(HttpResponseStatus.CONFLICT.code(), msg))
     }
 
-    fun invalidDimensions(): Exception {
-        val msg = "template dimensions must be > 0 and <= ${TemplateManagementService.MAX_TEMPLATE_DIMENSION}"
+    fun invalidDimensions(maxTemplateDimension: Long): Exception {
+        val msg = "template dimensions must be > 0 and <= $maxTemplateDimension"
         return WebApplicationException(msg, null, buildResp(HttpResponseStatus.BAD_REQUEST.code(), msg))
     }
 

@@ -45,6 +45,7 @@ To run it, configure the following environment-variables
 | COTEMPLATE_IMG_STORAGE                | path to the directory where images will be stored                                                                                                                                 |               |
 | COTEMPLATE_SESSION_KEY                | key to use to encrypt the session-cookie                                                                                                                                          |               |
 | COTEMPLATE_MAX_AGE                    | time after which templates will be automatically deleted (see [here](https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence-) for syntax) | P62D          |
+| COTEMPLATE_MAX_SIZE                   | maximum allowed size of longest side of a template in px                                                                                                                          | 8192          |
 | COTEMPLATE_ADMIN_PASS                 | password for admin-access (username is `admin`); if empty or `_` then the admin account will be disabled                                                                          | _             |
 | COTEMPLATE_CACHE_TEMPLATE_MAX_ENTRIES | max number of composed templates to cache                                                                                                                                         | 128           |
 | COTEMPLATE_CACHE_TEMPLATE_MAX_AGE     | time to cache composed templates for                                                                                                                                              | 1h            |
@@ -64,7 +65,7 @@ localhost {
 
 ## Build
 
-To build the project, you need JDK 21.
+To build the project, you need JDK 25.
 Clone the repo and then run the `assemble` or `createTar` Gradle tasks (`./gradlew <task>`).
 
 To change the subpath CoTemplate must be served, edit the `urlSubPath` variable in `build.gradle.kts`.
@@ -73,7 +74,7 @@ It must start with a slash but not end with a slash.
 ### Dev run
 
 To run a local dev instance, use the `quarkusDev` Gradle task.
-The required environment-variables must be set + `COTEMPLATE_PATH=/cotemplate` (or whatever value you wnt to use in `urlSubPath`).
+The required environment-variables must be set + `COTEMPLATE_PATH=/cotemplate` (or whatever value you want to use in `urlSubPath`).
 
 Here is an example Caddyfile to server the backend and frontend unter the same domain (*https://localhost:8443/cotemplate*).
 

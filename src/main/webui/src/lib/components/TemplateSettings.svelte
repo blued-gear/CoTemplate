@@ -2,6 +2,7 @@
     import type {TeamCreatePolicy} from "$lib/js/api";
     import {TeamCreatePolicy as TeamCreatePolicyVals} from "$lib/js/api";
     import {Input, Label} from "flowbite-svelte";
+    import dynamicConstants from "$lib/js/dynamicConstants";
 
     interface Props {
         sizeW: number;
@@ -9,6 +10,9 @@
         teamCreatePolicy: TeamCreatePolicy;
     }
     let { sizeW = $bindable(), sizeH = $bindable(), teamCreatePolicy = $bindable() }: Props = $props();
+
+    let maxDimension: number = $state(0);
+    dynamicConstants.then(values => maxDimension = values.maxTemplateSize);
 
     let tcpEveryone = $derived(teamCreatePolicy === TeamCreatePolicyVals.Everyone);
     let tcpOwner = $derived(teamCreatePolicy === TeamCreatePolicyVals.Owner);
@@ -26,11 +30,11 @@
     <div class="flex flex-row gap-2">
         <div>
             <Label for="tpl_props_w" class="mb-2">Width</Label>
-            <Input type="number" id="tpl_props_w" required min="1" max="8192" bind:value={sizeW} />
+            <Input type="number" id="tpl_props_w" required min="1" max={maxDimension} bind:value={sizeW} />
         </div>
         <div>
             <Label for="tpl_props_h" class="mb-2">Height</Label>
-            <Input type="number" id="tpl_props_h" required min="1" max="8192" bind:value={sizeH} />
+            <Input type="number" id="tpl_props_h" required min="1" max={maxDimension} bind:value={sizeH} />
         </div>
     </div>
 

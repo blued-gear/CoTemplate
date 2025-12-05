@@ -13,6 +13,8 @@ import java.time.Duration
 internal class MiscellaneousRessource(
     @param:ConfigProperty(name = "cotemplate.template-max-age")
     private val templateMaxAge: Duration,
+    @param:ConfigProperty(name = "cotemplate.template-max-size")
+    private val templateMaxSize: Long,
 ) {
 
     @GET
@@ -25,5 +27,17 @@ internal class MiscellaneousRessource(
     )
     fun maxTemplateAge(): Long {
         return templateMaxAge.toMillis()
+    }
+
+    @GET
+    @Path("/maxTemplateSize")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    @Operation(
+        operationId = "maxTemplateSize",
+        summary = "Returns the maximum size of a template (longest side in px)"
+    )
+    fun maxTemplateSize(): Long {
+        return templateMaxSize
     }
 }
