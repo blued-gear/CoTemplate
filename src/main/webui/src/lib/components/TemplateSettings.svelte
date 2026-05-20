@@ -28,11 +28,11 @@
 
 <div class="flex flex-col gap-2">
     <div class="flex flex-row gap-2">
-        <div>
+        <div class="w-24">
             <Label for="tpl_props_w" class="mb-2">Width</Label>
             <Input type="number" id="tpl_props_w" required min="1" max={maxDimension} bind:value={sizeW} />
         </div>
-        <div>
+        <div class="w-24">
             <Label for="tpl_props_h" class="mb-2">Height</Label>
             <Input type="number" id="tpl_props_h" required min="1" max={maxDimension} bind:value={sizeH} />
         </div>

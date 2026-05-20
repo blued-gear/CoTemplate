@@ -59,7 +59,13 @@ localhost {
     redir /cotemplate /cotemplate/ui/ permanent
     redir /cotemplate/ /cotemplate/ui/ permanent
     redir /cotemplate/ui /cotemplate/ui/ permanent
-    rewrite /cotemplate/ui/ /cotemplate/ui/index.html
+
+    @svelte_router {
+        path /cotemplate/ui/*
+        not path /cotemplate/ui/_app/*
+    }
+    rewrite @svelte_router /cotemplate/ui/index.html
+
     reverse_proxy /cotemplate/* http://cotemplate.local:8080
 }
 ```

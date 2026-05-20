@@ -38,6 +38,7 @@ internal class AuthLoginProvider(
 
             val reqData = req.attributes["quarkus.http.routing.context"] as RoutingContext
             val templateName = reqData.request().formAttributes()["template"]
+                ?: throw AuthenticationFailedException("http request does  not contain required attributes")
             val user = retrieveUser(req, templateName)
 
             return@runBlocking CotemplateSecurityIdentity(

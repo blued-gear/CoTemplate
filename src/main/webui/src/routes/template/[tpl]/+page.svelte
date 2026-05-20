@@ -141,7 +141,7 @@
 
     async function onAddImg(img: ImgProperties) {
         try {
-            await API.addTemplateItem(data.tplId, img.description, img.imgData!, img.x, img.y, img.z);
+            await API.addTemplateItem(data.tplId, img.description, img.x, img.y, img.z, img.imgData!);
         } catch(e) {
             const err = await parseHttpException(e);
             if(err != null) {
@@ -317,7 +317,7 @@
         <img class="w-full h-full contain-content bg-white border" style="image-rendering: crisp-edges;" src="{imgUrl}" alt="template" />
     </div>
 
-    <Drawer bind:open={imgDrawerOpen} class="overflow-y-auto text-black dark:text-white">
+    <Drawer bind:open={imgDrawerOpen} class="pt-10 overflow-y-auto text-black dark:text-white">
         {#if data.userRole !== ROLE_GUEST}
         <Button class="w-full" onclick={() => showImgAddDlg = true}>Add Image</Button>
         {/if}
@@ -346,7 +346,7 @@
         {/each}
     </Drawer>
 
-    <Drawer placement="right" transitionParams={drawerTransitionRight} bind:open={settingsDrawerOpen} class="text-black dark:text-white">
+    <Drawer placement="right" transitionParams={drawerTransitionRight} bind:open={settingsDrawerOpen} class="pt-10 text-black dark:text-white">
         <div class="flex flex-col gap-6">
             <div class="text-sm">
                 CoTemplate created at {new Date(data.tplInfo.createdAt ?? 0).toLocaleString()}

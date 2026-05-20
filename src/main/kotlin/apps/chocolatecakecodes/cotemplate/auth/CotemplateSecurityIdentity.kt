@@ -89,4 +89,8 @@ internal class CotemplateSecurityIdentity private constructor(
     override fun getPrincipal(): Principal {
         return TemplatePrincipal(template, userName)
     }
+
+    override fun getPermissions(): Set<Permission> {
+        return emptySet()
+    }
 }

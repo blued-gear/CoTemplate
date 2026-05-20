@@ -7,19 +7,19 @@ import java.nio.file.Files
 import java.util.*
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.allopen") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("jvm") version "2.3.21"
+    kotlin("plugin.allopen") version "2.3.21"
+    kotlin("plugin.serialization") version "2.3.21"
     id("io.quarkus")
 
-    id("io.smallrye.openapi") version "4.1.1"
-    id("org.openapi.generator") version "7.17.0"
+    id("io.smallrye.openapi") version "4.3.3"
+    id("org.openapi.generator") version "7.21.0"
 
     idea
 }
 
 group = "apps.chocolatecakecodes.cotemplate"
-version = "1.1.0-b"
+version = "1.2.0"
 
 val urlSubPath = "/cotemplate"
 
@@ -56,15 +56,15 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.7.0")
+    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.8.1")
 
-    implementation("com.sksamuel.scrimage:scrimage-core:4.3.5")
+    implementation("com.sksamuel.scrimage:scrimage-core:4.5.4")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
-    testImplementation("io.kotest:kotest-assertions-core:6.0.7")
+    testImplementation("io.kotest:kotest-assertions-core:6.1.11")
 }
 
 quarkus {
@@ -72,13 +72,13 @@ quarkus {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_24
+        jvmTarget = JvmTarget.JVM_25
         javaParameters = true
     }
 }
