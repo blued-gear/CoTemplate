@@ -5,6 +5,7 @@
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import {goto} from "$app/navigation";
     import MessageToast from "$lib/components/MessageToast.svelte";
+    import {preventDefault} from "$lib/js/utils";
 
     let tplName = $state("");
     let tplUser = $state("");
@@ -50,7 +51,7 @@
     }
 </script>
 
-<form onsubmit={submit}>
+<form onsubmit={preventDefault(submit)}>
     <MessageToast show={toastError}>
         {#snippet content()}
             Unable to login:

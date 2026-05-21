@@ -10,6 +10,7 @@
     import {API} from "$lib/js/constants";
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import MessageToast from "$lib/components/MessageToast.svelte";
+    import {preventDefault} from "$lib/js/utils";
 
     interface Props {
         onCreated: (resp: TemplateCreatedDto) => void;
@@ -44,7 +45,7 @@
     }
 </script>
 
-<form onsubmit={submit}>
+<form onsubmit={preventDefault(submit)}>
     <MessageToast show={toastError}>
         {#snippet content()}
             Unable to create template:

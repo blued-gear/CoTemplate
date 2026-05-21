@@ -5,6 +5,7 @@
     import CreateTemplateStepInfo from "$lib/components/CreateTemplateStepInfo.svelte";
     import {parseHttpException} from "$lib/js/api-ext/errors";
     import MessageToast from "$lib/components/MessageToast.svelte";
+    import {preventDefault} from "$lib/js/utils";
 
     let errMsg: string | null = $state(null);
     let tplName = $state("");
@@ -34,7 +35,7 @@
             {/snippet}
         </MessageToast>
 
-        <form class="flex flex-col gap-4" onsubmit={onImport}>
+        <form class="flex flex-col gap-4" onsubmit={preventDefault(onImport)}>
             <div>
                 <Label for="new_template" class="mb-2">Template Name</Label>
                 <Input type="text" id="new_template" required bind:value={tplName} />

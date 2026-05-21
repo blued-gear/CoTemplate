@@ -8,6 +8,7 @@
     import IconButton from "$lib/components/IconButton.svelte";
     import {invalidateAll} from "$app/navigation";
     import {login} from "$lib/js/api-ext/auth";
+    import {preventDefault} from "$lib/js/utils";
 
     type TemplateDetails = TemplateDetailsDto & { id: string };
 
@@ -84,7 +85,7 @@
             {/snippet}
         </MessageToast>
 
-        <form class="flex flex-col gap-4" onsubmit={onLogin}>
+        <form class="flex flex-col gap-4" onsubmit={preventDefault(onLogin)}>
             <Label>
                 <span>Username</span>
                 <Input required bind:value={authName}/>
