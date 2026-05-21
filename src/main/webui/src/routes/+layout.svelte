@@ -17,7 +17,7 @@
         {@render children?.()}
     </div>
 
-    <div class="p-1 flex gap-3">
+    <div class="p-1 flex items-center gap-3">
         <IconButton icon="mdi:cookie" onClick={()=>{}} />
         <Popover>
             This page uses only technical necessary cookies.
@@ -28,5 +28,11 @@
         </a>
 
         <IconButton icon="mdi:brightness-6" onClick={()=>{ document.body.classList.toggle("dark") }} />
+
+        <div class="grow"></div>
+
+        <div class="h-fit text-xs">
+            v1.2.0
+        </div>
     </div>
 </div>
