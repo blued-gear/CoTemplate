@@ -7,7 +7,13 @@
     import MessageToast from "$lib/components/MessageToast.svelte";
     import {preventDefault} from "$lib/js/utils";
 
-    let tplName = $state("");
+    interface Props {
+        presetTplName?: string;
+    }
+    let { presetTplName = undefined }: Props = $props();
+
+    // svelte-ignore state_referenced_locally
+    let tplName = $state(presetTplName ?? "");
     let tplUser = $state("");
     let tplPass = $state("");
 
@@ -27,7 +33,10 @@
     }
 
     function openTemplate() {
-        goto(`./template/${tplName}`);
+        if(presetTplName != undefined && location.pathname.endsWith(`/template/${presetTplName}`))
+            location.reload();
+        else
+            goto(`./template/${tplName}`);
     }
 
     async function loginAndOpen() {
@@ -60,18 +69,22 @@
     </MessageToast>
 
     <div class="flex flex-col">
+        {#if presetTplName == undefined}
         <div>
             <Label for="open_template" class="mb-2">Template ID</Label>
             <Input type="text" id="open_template" required bind:value={tplName} />
         </div>
+        {/if}
 
         <div class="mt-4">
             <Label for="open_user" class="mb-2">
                 <span>Username</span>
+                {#if presetTplName == undefined}
                 <Button outline pill class="ml-2 p-2! w-fit"><Icon icon="mdi-light:information"/></Button>
                 <Popover class="max-w-56">
                     Username and password are optional if you want to open the template in readonly mode.
                 </Popover>
+                {/if}
             </Label>
             <Input type="text" id="open_user" bind:value={tplUser} />
         </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {Button, Drawer, Popover, Tooltip} from "flowbite-svelte";
+    import {Button, Drawer, Modal, Popover, Tooltip} from "flowbite-svelte";
     import {sineIn} from "svelte/easing";
     import type {PageData} from "./+page.ts";
     import {API, API_PATH, STORAGE_SELECTED_ITEMS} from "$lib/js/constants";
@@ -15,6 +15,7 @@
     import TeamAddDlg from "$lib/components/TeamAddDlg.svelte";
     import MessageToast from "$lib/components/MessageToast.svelte";
     import favicon from "$lib/assets/favicon.png";
+    import OpenTemplate from "$lib/components/OpenTemplate.svelte";
 
     const drawerTransitionRight = {
         x: 320,
@@ -38,6 +39,7 @@
     let showImgEditDlg = $state(false);
     let showImgAddDlg = $state(false);
     let showTeamAddDlg = $state(false);
+    let showLoginDlg = $state(false);
     let editingImg: ImgProperties | null = $state(null);
     let tplSettingsSizeW = $derived(data.tplInfo.width!);
     let tplSettingsSizeH = $derived(data.tplInfo.height!);
@@ -276,6 +278,10 @@
         location.reload();
     }
 
+    async function onLogin() {
+        showLoginDlg = true;
+    }
+
     async function reload() {
         imgUrl = computeImgUrl();
         await loadImageInfo();
@@ -308,6 +314,11 @@
             <IconButton icon="mdi:logout" onClick={onLogout} />
             <Tooltip>Logout</Tooltip>
         </div>
+        {:else }
+        <div>
+            <IconButton icon="mdi:login" onClick={onLogin} />
+            <Tooltip>Login</Tooltip>
+        </div>
         {/if}
 
         <IconButton icon="mdi:cog" onClick={() => settingsDrawerOpen = true} />
@@ -319,7 +330,7 @@
 
     <Drawer bind:open={imgDrawerOpen} class="pt-10 overflow-y-auto text-black dark:text-white">
         {#if data.userRole !== ROLE_GUEST}
-        <Button class="w-full" onclick={() => showImgAddDlg = true}>Add Image</Button>
+        <Button class="w-full mt-2" onclick={() => showImgAddDlg = true}>Add Image</Button>
         {/if}
 
         {#each images as img}
@@ -371,6 +382,10 @@
     <ImgEditDlg bind:open={showImgAddDlg} create onSubmit={onAddImg} />
     <ImgEditDlg bind:open={showImgEditDlg} create={false} initialData={editingImg} onSubmit={onEditedImg} />
     <TeamAddDlg bind:open={showTeamAddDlg} tplId={data.tplId} userRole={data.userRole} />
+
+    <Modal bind:open={showLoginDlg} title="Login as Team" size="sm">
+        <OpenTemplate presetTplName={data.tplId}></OpenTemplate>
+    </Modal>
 
     <MessageToast show={errMsg != null}>
         {#snippet content()}
