@@ -7,19 +7,19 @@ import java.nio.file.Files
 import java.util.*
 
 plugins {
-    kotlin("jvm") version "2.3.21"
-    kotlin("plugin.allopen") version "2.3.21"
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.allopen") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
     id("io.quarkus")
 
-    id("io.smallrye.openapi") version "4.3.3"
-    id("org.openapi.generator") version "7.21.0"
+    id("io.smallrye.openapi") version "4.3.5"
+    id("org.openapi.generator") version "7.21.0" //XXX do not update, as newer versions have a breaking bug
 
     idea
 }
 
 group = "apps.chocolatecakecodes.cotemplate"
-version = "1.2.0"
+version = "1.3.0"
 
 val urlSubPath = "/cotemplate"
 
@@ -56,15 +56,15 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.8.1")
+    implementation("io.quarkiverse.quinoa:quarkus-quinoa:2.8.3")
 
-    implementation("com.sksamuel.scrimage:scrimage-core:4.5.4")
+    implementation("com.sksamuel.scrimage:scrimage-core:4.6.6")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
     testImplementation("io.quarkus:quarkus-jdbc-h2")
-    testImplementation("io.kotest:kotest-assertions-core:6.1.11")
+    testImplementation("io.kotest:kotest-assertions-core:6.2.2")
 }
 
 quarkus {
