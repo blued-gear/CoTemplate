@@ -110,6 +110,11 @@
         img.selected = !img.selected;
     }
 
+    function resetSelection() {
+        setSelectedItems([]);
+        images.forEach(img => img.selected = false);
+    }
+
     async function loadImageInfo() {
         try {
             const resp = await API.getTemplateItems(data.tplId);
@@ -332,6 +337,8 @@
         {#if data.userRole !== ROLE_GUEST}
         <Button class="w-full mt-2" onclick={() => showImgAddDlg = true}>Add Image</Button>
         {/if}
+
+        <Button class="w-full mt-2" onclick={resetSelection}>Reset Selection</Button>
 
         {#each images as img}
             <div
