@@ -115,6 +115,11 @@
         images.forEach(img => img.selected = false);
     }
 
+    function selectAll() {
+        setSelectedItems(getSelectedItems());
+        images.forEach(img => img.selected = true);
+    }
+
     async function loadImageInfo() {
         try {
             const resp = await API.getTemplateItems(data.tplId);
@@ -338,7 +343,11 @@
         <Button class="w-full mt-2" onclick={() => showImgAddDlg = true}>Add Image</Button>
         {/if}
 
+        {#if getSelectedItems().length > 0}
         <Button class="w-full mt-2" onclick={resetSelection}>Reset Selection</Button>
+        {:else }
+        <Button class="w-full mt-2" onclick={selectAll}>Selection All</Button>
+        {/if}
 
         {#each images as img}
             <div
